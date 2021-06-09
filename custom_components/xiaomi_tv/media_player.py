@@ -43,43 +43,25 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
             _LOGGER.error("Could not find Xiaomi TV with specified IP: %s", host)
         else:
             # Register TV with Home Assistant.
-            add_entities([XiaomiTV(host, name)])
+            add_entities([XiaomiTV(host, name, hass)])
     else:
         # Otherwise, discover TVs on network.
-        add_entities(XiaomiTV(tv, DEFAULT_NAME) for tv in pymitv.Discover().scan())
+        add_entities(XiaomiTV(tv, DEFAULT_NAME, hass) for tv in pymitv.Discover().scan())
 
 
 class XiaomiTV(MediaPlayerEntity):
     """Represent the Xiaomi TV for Home Assistant."""
 
-    def __init__(self, ip, name):
+    def __init__(self, ip, name, hass):
         """Receive IP address and name to construct class."""
+        self.hass = hass
         self.ip = ip
         # Initialize the Xiaomi TV.
         self._tv = pymitv.TV(ip)
         # Default name value, only to be overridden by user.
         self._name = name
         self._state = STATE_OFF
-        self._volume_level = self._tv.get_volume()
-        # 应用
-        self.apps = {
-            '奇异果': 'com.gitvdemo.video',
-            '酷喵': 'com.cibn.tv',
-            '腾讯视频': 'com.ktcp.video',
-            '哔哩哔哩': 'com.xiaodianshi.tv.yst',
-            '芒果TV': 'com.hunantv.license',
-            'Kodi': 'org.xbmc.kodi',
-            '视频头条': 'com.duokan.videodaily',
-            'QQ音乐': 'com.tencent.qqmusictv',
-            '桌面': 'com.mitv.tvhome',
-            '小米通话': 'com.xiaomi.mitv.tvvideocall',
-            '小爱同学': 'com.xiaomi.voicecontrol',
-            '无线投屏': 'com.xiaomi.mitv.smartshare',
-        }
-        _source_list = []
-        for app in self.apps:
-            _source_list.append(app)
-        self._source_list = _source_list
+        self.update()
 
     @property
     def name(self):
@@ -117,16 +99,22 @@ class XiaomiTV(MediaPlayerEntity):
     def update(self):
         self._volume_level = self._tv.get_volume()
         self._state = self._tv.is_on and STATE_ON or STATE_OFF
+        # 获取本机APP列表
+        res = self.execute('getinstalledapp&count=999&changeIcon=1')
+        AppInfo = res['data']['AppInfo']
+        apps = {}
+        _source_list = []
+        for app in AppInfo:
+            AppName = app['AppName']
+            _source_list.append(AppName)
+            apps.update({ AppName: app['PackageName'] })        
+        self.apps = apps
+        self._source_list = _source_list
 
     # 选择应用
     def select_source(self, source):
-        # 如果是切换源
-        if self.source_path.count(source) > 0:
-            return self._tv.change_source(source)
-        # 打开应用
-        tv_url = 'http://{}:6095/controller?action=startapp&type=packagename&packagename='.format(self.ip)
         if self.apps[source] is not None:
-            requests.get(tv_url + self.apps[source])
+            self.execute('startapp&type=packagename&packagename=' + self.apps[source])
 
     # 选择数据源
     def select_source_mode(self, mode):
@@ -143,8 +131,7 @@ class XiaomiTV(MediaPlayerEntity):
     def turn_on(self):
         """Wake the TV back up from sleep."""
         if self._state != STATE_ON:
-            self._tv.wake()
-
+            self.hass.bus.async_fire("xiaomi_tv", { 'ip': self.ip, 'type': 'on' })
             self._state = STATE_ON
 
     def volume_up(self):
@@ -154,3 +141,10 @@ class XiaomiTV(MediaPlayerEntity):
     def volume_down(self):
         """Decrease volume by one."""
         self._tv.volume_down()
+
+    # 获取执行命令
+    def execute(self, cmd):
+        request_timeout = 0.1
+        tv_url = 'http://{}:6095/controller?action='.format(self.ip) + cmd
+        request = requests.get(tv_url, timeout=request_timeout)
+        return request.json()
