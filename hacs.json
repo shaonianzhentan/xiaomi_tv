@@ -1,0 +1,8 @@
+{
+    "name": "小米电视",
+    "country": "CN",
+    "render_readme": true,
+    "domains": [
+        "media_player"
+    ]
+}

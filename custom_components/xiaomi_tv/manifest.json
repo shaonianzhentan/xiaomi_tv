@@ -1,0 +1,13 @@
+{
+    "domain": "xiaomi_tv",
+    "name": "\u5C0F\u7C73\u7535\u89C6",
+    "version": "1.0.0",
+    "documentation": "https://github.com/shaonianzhentan/xiaomi_tv",
+    "requirements": [
+        "pymitv==1.5.0"
+    ],
+    "codeowners": [
+        "@simse"
+    ],
+    "iot_class": "assumed_state"
+}
