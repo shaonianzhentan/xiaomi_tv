@@ -93,19 +93,22 @@ class XiaomiTV(MediaPlayerEntity):
 
     # 更新属性
     def update(self):
-        self._volume_level = self._tv.get_volume()
-        self._state = self._tv.is_on and STATE_ON or STATE_OFF
-        # 获取本机APP列表
-        res = self.execute('getinstalledapp&count=999&changeIcon=1')
-        AppInfo = res['data']['AppInfo']
-        apps = {}
-        _source_list = []
-        for app in AppInfo:
-            AppName = app['AppName']
-            _source_list.append(AppName)
-            apps.update({ AppName: app['PackageName'] })        
-        self.apps = apps
-        self._source_list = _source_list
+        try:
+            self._volume_level = self._tv.get_volume()
+            self._state = self._tv.is_on and STATE_ON or STATE_OFF
+            # 获取本机APP列表
+            res = self.execute('getinstalledapp&count=999&changeIcon=1')
+            AppInfo = res['data']['AppInfo']
+            apps = {}
+            _source_list = []
+            for app in AppInfo:
+                AppName = app['AppName']
+                _source_list.append(AppName)
+                apps.update({ AppName: app['PackageName'] })        
+            self.apps = apps
+            self._source_list = _source_list
+         except Exception as ex:
+            _LOGGER.debug(ex)
 
     # 选择应用
     def select_source(self, source):
