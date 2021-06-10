@@ -8,9 +8,16 @@
 
 > HomeAssistant配置
 ```yaml
+# 配置
 media_player:
   - platform: xiaomi_tv
     host: 192.168.0.105
+
+# 日志
+logger:
+  default: info
+  logs:
+    custom_components.xiaomi_tv: debug
 ```
 
 > 开机事件自动化监听(触发条件)
