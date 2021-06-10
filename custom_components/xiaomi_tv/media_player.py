@@ -57,6 +57,7 @@ class XiaomiTV(MediaPlayerEntity):
         # Default name value, only to be overridden by user.
         self._name = name
         self._state = STATE_OFF
+        self._source_list = []
         self.update()
 
     @property
@@ -107,7 +108,7 @@ class XiaomiTV(MediaPlayerEntity):
                 apps.update({ AppName: app['PackageName'] })        
             self.apps = apps
             self._source_list = _source_list
-         except Exception as ex:
+        except Exception as ex:
             _LOGGER.debug(ex)
 
     # 选择应用
@@ -124,13 +125,13 @@ class XiaomiTV(MediaPlayerEntity):
     def turn_off(self):
         if self._state != STATE_OFF:
             self._tv.turn_off()
-
+            self.fire_event('off')
             self._state = STATE_OFF
 
     def turn_on(self):
         """Wake the TV back up from sleep."""
         if self._state != STATE_ON:
-            self.hass.bus.async_fire("xiaomi_tv", { 'ip': self.ip, 'type': 'on' })
+            self.fire_event('on')
             self._state = STATE_ON
 
     def volume_up(self):
@@ -140,6 +141,10 @@ class XiaomiTV(MediaPlayerEntity):
     def volume_down(self):
         """Decrease volume by one."""
         self._tv.volume_down()
+
+    # 发送事件
+    def fire_event(self, cmd):
+        self.hass.bus.async_fire("xiaomi_tv", { 'ip': self.ip, 'type': cmd })
 
     # 获取执行命令
     def execute(self, cmd):
