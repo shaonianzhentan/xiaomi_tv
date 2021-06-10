@@ -58,7 +58,6 @@ class XiaomiTV(MediaPlayerEntity):
         self._name = name
         self._state = STATE_OFF
         self._source_list = []
-        self.update()
 
     @property
     def name(self):
