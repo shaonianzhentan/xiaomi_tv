@@ -6,6 +6,13 @@
 - 支持更换数据源
 - 支持选择打开APP
 
+> HomeAssistant配置
+```yaml
+media_player:
+  - platform: xiaomi_tv
+    host: 192.168.0.105
+```
+
 > 开机事件自动化监听(触发条件)
 ```yaml
 platform: event

@@ -38,12 +38,8 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     name = config.get(CONF_NAME)
 
     if host is not None:
-        # Check if there's a valid TV at the IP address.
-        if not pymitv.Discover().check_ip(host):
-            _LOGGER.error("Could not find Xiaomi TV with specified IP: %s", host)
-        else:
-            # Register TV with Home Assistant.
-            add_entities([XiaomiTV(host, name, hass)])
+        # Register TV with Home Assistant.
+        add_entities([XiaomiTV(host, name, hass)])
     else:
         # Otherwise, discover TVs on network.
         add_entities(XiaomiTV(tv, DEFAULT_NAME, hass) for tv in pymitv.Discover().scan())
