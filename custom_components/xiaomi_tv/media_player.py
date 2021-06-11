@@ -50,7 +50,6 @@ class XiaomiTV(MediaPlayerEntity):
         self._volume_level = 0
         self._state = STATE_OFF
         self._source_list = []
-        self.update()
 
     @property
     def name(self):
@@ -88,7 +87,7 @@ class XiaomiTV(MediaPlayerEntity):
     def update(self):
         try:
             if self._tv is None:
-                self._tv = pymitv.TV(ip)
+                self._tv = pymitv.TV(self.ip)
             self._volume_level = self._tv.get_volume()
             self._state = self._tv.is_on and STATE_ON or STATE_OFF
             # 获取本机APP列表
