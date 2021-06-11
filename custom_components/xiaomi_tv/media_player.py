@@ -36,14 +36,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     # If a hostname is set. Discovery is skipped.
     host = config.get(CONF_HOST)
     name = config.get(CONF_NAME)
-
-    if host is not None:
-        # Register TV with Home Assistant.
-        add_entities([XiaomiTV(host, name, hass)])
-    else:
-        # Otherwise, discover TVs on network.
-        add_entities(XiaomiTV(tv, DEFAULT_NAME, hass) for tv in pymitv.Discover().scan())
-
+    add_entities([XiaomiTV(host, name, hass)])
 
 class XiaomiTV(MediaPlayerEntity):
     """Represent the Xiaomi TV for Home Assistant."""
@@ -52,12 +45,12 @@ class XiaomiTV(MediaPlayerEntity):
         """Receive IP address and name to construct class."""
         self.hass = hass
         self.ip = ip
-        # Initialize the Xiaomi TV.
-        self._tv = pymitv.TV(ip)
-        # Default name value, only to be overridden by user.
+        self._tv = None
         self._name = name
+        self._volume_level = 0
         self._state = STATE_OFF
         self._source_list = []
+        self.update()
 
     @property
     def name(self):
@@ -94,6 +87,8 @@ class XiaomiTV(MediaPlayerEntity):
     # 更新属性
     def update(self):
         try:
+            if self._tv is None:
+                self._tv = pymitv.TV(ip)
             self._volume_level = self._tv.get_volume()
             self._state = self._tv.is_on and STATE_ON or STATE_OFF
             # 获取本机APP列表
