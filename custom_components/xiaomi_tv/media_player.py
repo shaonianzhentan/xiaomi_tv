@@ -149,5 +149,6 @@ class XiaomiTV(MediaPlayerEntity):
     def execute(self, cmd):
         request_timeout = 0.1
         tv_url = 'http://{}:6095/controller?action='.format(self.ip) + cmd
-        request = requests.get(tv_url, timeout=request_timeout)
-        return request.json()
+        res = requests.get(tv_url, timeout=request_timeout)
+        res.encoding = 'utf-8'
+        return res.json()
