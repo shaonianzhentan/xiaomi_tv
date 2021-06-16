@@ -1,11 +1,9 @@
 # xiaomi_tv
 
-在HA里使用的小米电视（基于官方版本修改）
+在HA里使用的小盒精灵电视控制，
 
-> 新增功能
-- 支持更换数据源
-- 支持选择打开APP
-- 支持调整音量
+小盒精灵电视应用：http://www.dangbei.com/app/tv/2020/0222/7414.html
+APP项目地址：https://gitee.com/mirrors/TVRemoteIME
 
 > HomeAssistant配置
 ```yaml
