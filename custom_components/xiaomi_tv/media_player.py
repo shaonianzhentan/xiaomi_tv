@@ -1,14 +1,16 @@
 """Add support for the Xiaomi TVs."""
 import logging
-import requests
-import pymitv
+import requests, time, hashlib
 import voluptuous as vol
+from icmplib import ping
 
 from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerEntity
 from homeassistant.components.media_player.const import (
     SUPPORT_TURN_OFF,
     SUPPORT_TURN_ON,
     SUPPORT_VOLUME_STEP,
+    SUPPORT_VOLUME_SET,
+    SUPPORT_VOLUME_MUTE,
     SUPPORT_SELECT_SOURCE,
     SUPPORT_SELECT_SOUND_MODE,
     SUPPORT_PLAY_MEDIA,
@@ -20,7 +22,8 @@ DEFAULT_NAME = "小米电视"
 
 _LOGGER = logging.getLogger(__name__)
 
-SUPPORT_XIAOMI_TV = SUPPORT_VOLUME_STEP | SUPPORT_TURN_ON | SUPPORT_TURN_OFF | SUPPORT_SELECT_SOURCE | SUPPORT_SELECT_SOUND_MODE | SUPPORT_PLAY_MEDIA
+SUPPORT_XIAOMI_TV = SUPPORT_VOLUME_STEP | SUPPORT_VOLUME_MUTE | SUPPORT_VOLUME_SET | \
+    SUPPORT_TURN_ON | SUPPORT_TURN_OFF | SUPPORT_SELECT_SOURCE | SUPPORT_SELECT_SOUND_MODE | SUPPORT_PLAY_MEDIA
 
 # No host is needed for configuration, however it can be set.
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -45,11 +48,33 @@ class XiaomiTV(MediaPlayerEntity):
         """Receive IP address and name to construct class."""
         self.hass = hass
         self.ip = ip
-        self._tv = None
         self._name = name
-        self._volume_level = 0
+        self._volume_level = 1
         self._state = STATE_OFF
         self._source_list = []
+        # 已知应用列表
+        self.apps = {
+                '云视听极光': 'com.ktcp.video',
+                '芒果TV': 'com.hunantv.license',
+                '银河奇异果': 'com.gitvdemo.video',
+                'CIBN酷喵': 'com.cibn.tv',
+                '视频头条': 'com.duokan.videodaily',
+                '小米通话': 'com.xiaomi.mitv.tvvideocall',
+                'QQ音乐': 'com.tencent.qqmusictv',
+                '定时提醒': 'com.mitv.alarmcenter',
+                '天气': 'com.xiaomi.tweather',
+                '用户手册': 'com.xiaomi.mitv.handbook',
+                '桌面': 'com.mitv.tvhome',
+                '电视管家': 'com.xiaomi.mitv.tvmanager',
+                '日历': 'com.xiaomi.mitv.calendar',
+                '小爱同学': 'com.xiaomi.voicecontrol',
+                '相册': 'com.mitv.gallery',
+                '电视设置': 'com.xiaomi.mitv.settings',
+                '时尚画报': 'com.xiaomi.tv.gallery',
+                '无线投屏': 'com.xiaomi.mitv.smartshare'
+            }
+        # mitv ethernet Mac address
+        self.ethmac = None
 
     @property
     def name(self):
@@ -85,24 +110,11 @@ class XiaomiTV(MediaPlayerEntity):
 
     # 更新属性
     def update(self):
-        try:
-            if self._tv is None:
-                self._tv = pymitv.TV(self.ip)
-            self._volume_level = self._tv.get_volume()
-            self._state = self._tv.is_on and STATE_ON or STATE_OFF
-            # 获取本机APP列表
-            res = self.execute('getinstalledapp&count=999&changeIcon=1')
-            AppInfo = res['data']['AppInfo']
-            apps = {}
-            _source_list = []
-            for app in AppInfo:
-                AppName = app['AppName']
-                _source_list.append(AppName)
-                apps.update({ AppName: app['PackageName'] })        
-            self.apps = apps
-            self._source_list = _source_list
-        except Exception as ex:
-            _LOGGER.debug(ex)
+        # 检测当前IP是否在线
+        host = ping(self.ip, count=1, interval=0.2)
+        self._state = host.is_alive and STATE_ON or STATE_OFF
+        self.get_apps()
+        self.getsysteminfo()
 
     # 选择应用
     def select_source(self, source):
@@ -111,13 +123,12 @@ class XiaomiTV(MediaPlayerEntity):
 
     # 选择数据源
     def select_source_mode(self, mode):
-        # 如果是切换源
         if self.sound_mode_list.count(mode) > 0:
-            return self._tv.change_source(mode)
+            self.execute('changesource&source=' + mode)
 
     def turn_off(self):
         if self._state != STATE_OFF:
-            self._tv.turn_off()
+            self.keyevent('power')
             self.fire_event('off')
             self._state = STATE_OFF
 
@@ -128,21 +139,76 @@ class XiaomiTV(MediaPlayerEntity):
             self._state = STATE_ON
 
     def volume_up(self):
-        """Increase volume by one."""
-        self._tv.volume_up()
+        self.keyevent('volumeup')
 
     def volume_down(self):
-        """Decrease volume by one."""
-        self._tv.volume_down()
+        self.keyevent('volumedown')
+
+    def mute_volume(self, mute):
+        if mute:
+            count = 0
+            while count > 30:
+                self.volume_down()
+        else:
+            self.set_volume_level(0.3)
+
+    def set_volume_level(self, volume):
+        if self.ethmac is not None:
+            volum = int(volume * 50)
+            ts = str(time.time())[-5:]
+            data = f'mitvsignsalt{volum}{self.ethmac}{ts}'
+            sign = hashlib.md5(data.encode(encoding='UTF-8')).hexdigest()
+            self.http(f'general?action=setVolum&volum={volum}&ts={ts}&sign={sign}')
+
+    def media_play(self):
+        self.keyevent('enter')
+
+    def media_pause(self):
+        self.keyevent('enter')
 
     # 发送事件
     def fire_event(self, cmd):
         self.hass.bus.async_fire("xiaomi_tv", { 'ip': self.ip, 'type': cmd })
 
+    # 获取安装APP
+    def get_apps(self):
+        # 获取本机APP列表
+        res = self.execute('getinstalledapp&count=999&changeIcon=1')
+        if res is not None:
+            AppInfo = res['data']['AppInfo']
+            for app in AppInfo:
+                self.apps.update({ app['AppName']: app['PackageName'] })
+        # 绑定数据源
+        _source_list = []
+        for name in self.apps:
+            _source_list.append(name)
+        self._source_list = _source_list
+
     # 获取执行命令
     def execute(self, cmd):
-        request_timeout = 0.1
-        tv_url = 'http://{}:6095/controller?action='.format(self.ip) + cmd
-        res = requests.get(tv_url, timeout=request_timeout)
-        res.encoding = 'utf-8'
-        return res.json()
+        return self.http(f'controller?action={cmd}')
+
+    # 执行按键命令
+    def keyevent(self, keycode):
+        return self.http(f'controller?action=keyevent&keycode={keycode}')
+
+    # 获取电视信息
+    def getsysteminfo(self):
+        res = self.execute('getsysteminfo')
+        if res is not None:
+            data = res['data']
+            self.deviceid = data['deviceid']
+            self.devicename = data['devicename']
+            self.ethmac = data['ethmac']
+            self.wifimac = data['wifimac']
+
+    # 获取执行命令
+    def http(self, url):
+        try:
+            request_timeout = 0.1
+            res = requests.get(f'http://{self.ip}:6095/{url}', timeout=request_timeout)
+            res.encoding = 'utf-8'
+            return res.json()
+        except Exception as ex:
+            _LOGGER.debug(ex)
+        return None
