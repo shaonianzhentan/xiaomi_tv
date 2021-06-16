@@ -158,8 +158,10 @@ class XiaomiTV(MediaPlayerEntity):
         # 获取本机APP列表
         res = self.http('apps', { 'system': 'false' })
         if res is not None:
+            apps = {}
             for app in res:
-                self.apps.update({ app['lable']: app['packageName'] })
+                apps.update({ app['lable']: app['packageName'] })
+            self.apps = apps
         # 绑定数据源
         _source_list = []
         for name in self.apps:
