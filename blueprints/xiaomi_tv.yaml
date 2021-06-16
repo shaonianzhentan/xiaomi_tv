@@ -4,33 +4,24 @@ blueprint:
   domain: automation
   source_url: https://github.com/shaonianzhentan/xiaomi_tv
   input:
-    media_player_target:
-      name: 电视
-      description: 电视实体
-      selector:
-        target:
-          entity:
-            domain: media_player
     tv_on:
-      name: TV ON
-      description: 打开电视
+      name: 打开电视
+      description: TV ON
       default: []
       selector:
         action: {}
     tv_off:
-      name: TV OFF
-      description: 关闭电视
+      name: 关闭电视
+      description: TV OFF
       default: []
       selector:
         action: {}
 trigger:
 - platform: event
   event_type: xiaomi_tv
-  event_data:
-    ip: '{{ state_attr(media_player_target.entity_id, 'host') }}'
 action:
 - variables:
-    command: '{{ trigger.event.data.type }}'
+    type: '{{ trigger.event.data.type }}'
 - choose:
   - conditions:
     - '{{ type == "on" }}'
