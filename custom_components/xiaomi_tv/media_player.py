@@ -100,7 +100,6 @@ class XiaomiTV(MediaPlayerEntity):
         host = ping(self.ip, count=1, interval=0.2)
         self._state = host.is_alive and STATE_ON or STATE_OFF
         self.get_apps()
-        self.getsysteminfo()
 
     # 选择应用
     def select_source(self, source):
