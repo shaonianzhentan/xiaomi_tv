@@ -94,6 +94,14 @@ class XiaomiTV(MediaPlayerEntity):
         """Flag media player features that are supported."""
         return SUPPORT_XIAOMI_TV
 
+    @property
+    def state_attributes(self):
+        attr = super().state_attributes
+        attr.update({
+            'host': self.ip,
+        })
+        return attr
+
     # 更新属性
     def update(self):
         # 检测当前IP是否在线
@@ -104,7 +112,7 @@ class XiaomiTV(MediaPlayerEntity):
     # 选择应用
     def select_source(self, source):
         if self.apps[source] is not None:
-            self.htt('run', {'packageName': self.apps[source]})
+            self.http('run', {'packageName': self.apps[source]})
 
     # 选择数据源
     def select_source_mode(self, mode):

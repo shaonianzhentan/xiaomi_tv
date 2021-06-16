@@ -1,0 +1,40 @@
+blueprint:
+  name: 电视开关
+  description: 电视开关事件
+  domain: automation
+  source_url: https://github.com/shaonianzhentan/xiaomi_tv
+  input:
+    media_player_target:
+      name: 电视
+      description: 电视实体
+      selector:
+        target:
+          entity:
+            domain: media_player
+    tv_on:
+      name: TV ON
+      description: 打开电视
+      default: []
+      selector:
+        action: {}
+    tv_off:
+      name: TV OFF
+      description: 关闭电视
+      default: []
+      selector:
+        action: {}
+trigger:
+- platform: event
+  event_type: xiaomi_tv
+  event_data:
+    ip: '{{ media_player_target }}'
+action:
+- variables:
+    command: '{{ trigger.event.data.type }}'
+- choose:
+  - conditions:
+    - '{{ type == "on" }}'
+    sequence: !input 'tv_on'
+  - conditions:
+    - '{{ type == "off" }}'
+    sequence: !input 'tv_off'
