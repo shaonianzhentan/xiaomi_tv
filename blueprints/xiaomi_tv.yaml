@@ -27,7 +27,7 @@ trigger:
 - platform: event
   event_type: xiaomi_tv
   event_data:
-    ip: '{{ media_player_target }}'
+    ip: '{{ state_attr(media_player_target.entity_id, 'host') }}'
 action:
 - variables:
     command: '{{ trigger.event.data.type }}'

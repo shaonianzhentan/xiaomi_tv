@@ -97,6 +97,8 @@ class XiaomiTV(MediaPlayerEntity):
     @property
     def state_attributes(self):
         attr = super().state_attributes
+        if attr is None:
+            attr = {}
         attr.update({
             'host': self.ip,
         })
