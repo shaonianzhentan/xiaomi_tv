@@ -149,6 +149,9 @@ class XiaomiTV(MediaPlayerEntity):
     def media_pause(self):
         self.keyevent(23)
 
+    def play_media(self, media_type, media_id, **kwargs):
+        self.http('play', {'playUrl': media_id, 'useSystem': 'false'})
+
     # 发送事件
     def fire_event(self, cmd):
         self.hass.bus.async_fire("xiaomi_tv", { 'ip': self.ip, 'type': cmd })
