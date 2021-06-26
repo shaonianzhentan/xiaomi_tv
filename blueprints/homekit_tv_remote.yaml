@@ -1,0 +1,44 @@
+blueprint:
+  name: iOS电视遥控
+  description: iOS系统电视遥控器
+  domain: automation
+  source_url: https://github.com/shaonianzhentan/xiaomi_tv
+  input:
+    media_entity:
+      name: 电视
+      description: 小米电视
+      default: []
+      selector:
+        entity:
+          domain: media_player
+    remote_entity:
+      name: 遥控器
+      description: 小米电视遥控器
+      default: []
+      selector:
+        target:
+          entity:
+            domain: remote
+trigger:
+- platform: event
+  event_type: homekit_tv_remote_key_pressed
+  event_data:
+    entity_id: !input media_entity
+action:
+- service: remote.send_command
+  data:
+    command: >
+      {% set name = trigger.event.data.key_name %}
+      {% set keys = {
+            "arrow_up": "up",
+            "arrow_down": "down",
+            "arrow_left": "left",
+            "arrow_right": "right",
+            "select": "enter",
+            "play_pause": "enter",
+            "back": "back",
+            "information": "menu"
+          } 
+      %}
+      {{keys[name]}}
+  target: !input remote_entity
