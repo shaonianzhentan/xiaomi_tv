@@ -1,14 +1,16 @@
 # xiaomi_tv
 
-在HA里使用的小盒精灵电视控制，
-
-小盒精灵电视应用：http://www.dangbei.com/app/tv/2020/0222/7414.html
-APP项目地址：https://gitee.com/mirrors/TVRemoteIME
+小米电视
 
 > HomeAssistant配置
 ```yaml
-# 配置
+# 电视
 media_player:
+  - platform: xiaomi_tv
+    host: 192.168.0.105
+
+# 遥控器
+remote:
   - platform: xiaomi_tv
     host: 192.168.0.105
 
@@ -23,7 +25,20 @@ logger:
 ```yaml
 platform: event
 event_type: xiaomi_tv
-event_data:
-  ip: 192.168.0.105
+event_data:  
   type: 'on'
+  entity_id: '电视实体，用来区分多个电视，只有一个可以去掉此项'
 ```
+
+> 遥控器按键命令
+- 关机：`power`
+- 上：`up`
+- 下：`down`
+- 左：`left`
+- 右: `right`
+- 首页：`home`
+- 音量加：`volumeup`
+- 音量减：`volumedown`
+- 菜单：`menu`
+- 确定：`enter`
+- 返回：`back`
