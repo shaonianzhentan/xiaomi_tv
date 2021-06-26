@@ -41,6 +41,10 @@ class XiaomiRemote(RemoteEntity):
         return self._name
 
     @property
+    def unique_id(self):
+        return self.ip.replace('.', '')
+
+    @property
     def is_on(self):
         return True
 
@@ -49,11 +53,11 @@ class XiaomiRemote(RemoteEntity):
         return False
 
     async def async_turn_on(self, activity: str = None, **kwargs):
-        """Turn the remote on."""
+         """Turn the remote on."""
 
     async def async_turn_off(self, activity: str = None, **kwargs):
-        self.keyevent('power')
-
+         """Turn the remote off."""
+         
     async def async_send_command(self, command, **kwargs):
         """Send commands to a device."""
         key = command[0]

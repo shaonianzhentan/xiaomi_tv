@@ -83,6 +83,10 @@ class XiaomiTV(MediaPlayerEntity):
         return self._name
 
     @property
+    def unique_id(self):
+        return self.ip.replace('.', '')
+
+    @property
     def volume_level(self):
         return self._volume_level
 

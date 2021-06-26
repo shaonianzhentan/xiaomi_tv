@@ -7,7 +7,7 @@
         "icmplib==3.0"
     ],
     "codeowners": [
-        "@simse"
+        "@shaonianzhentan"
     ],
     "iot_class": "assumed_state"
 }
