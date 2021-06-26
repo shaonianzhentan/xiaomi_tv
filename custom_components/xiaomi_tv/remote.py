@@ -1,5 +1,5 @@
-import asyncio
-import logging, requests
+import aiohttp, time
+import logging
 import voluptuous as vol
 
 from homeassistant.components.media_player import PLATFORM_SCHEMA
@@ -60,17 +60,39 @@ class XiaomiRemote(RemoteEntity):
          
     async def async_send_command(self, command, **kwargs):
         """Send commands to a device."""
+        # device = kwargs.get('device', '')
         key = command[0]
         _LOGGER.debug(command)
-        self.keyevent(key)
+        actionKeys = {
+            'sleep': ['power', 'wait', 'right', 'wait', 'right', 'wait', 'enter'],
+            'power': ['power'],
+            'up': ['up'],
+            'down': ['down'],
+            'right': ['right'],
+            'left': ['left'],
+            'home': ['home'],
+            'enter': ['enter'],
+            'back': ['back'],
+            'menu': ['menu'],
+            'volumedown': ['volumedown'],
+            'volumeup': ['volumeup'],
+            # 搜索功能
+        }
+        if key in actionKeys:
+            await self.send_keystrokes(actionKeys[key])
 
     # 获取执行命令
-    def keyevent(self, keycode):
+    async def send_keystrokes(self, keystrokes):
         try:
-            request_timeout = 0.1
-            res = requests.get(f'http://{self.ip}:6095/controller?action=keyevent&keycode={keycode}', timeout=request_timeout)
-            res.encoding = 'utf-8'
-            return res.json()
+            tv_url = 'http://{}:6095/controller?action=keyevent&keycode='.format(self.ip)
+            request_timeout = aiohttp.ClientTimeout(total=1)
+            for keystroke in keystrokes:
+                if keystroke == 'wait':
+                    time.sleep(0.7)
+                else:
+                    async with aiohttp.ClientSession(timeout=request_timeout) as session:
+                        async with session.get(tv_url + keystroke) as response:
+                            if response.status != 200:
+                                return False
         except Exception as ex:
             _LOGGER.debug(ex)
-        return None
