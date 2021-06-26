@@ -16,9 +16,8 @@ blueprint:
       description: 小米电视遥控器
       default: []
       selector:
-        target:
-          entity:
-            domain: remote
+        entity:
+          domain: remote
 trigger:
 - platform: event
   event_type: homekit_tv_remote_key_pressed
@@ -26,7 +25,8 @@ trigger:
     entity_id: !input media_entity
 action:
 - service: remote.send_command
-  data:
+  data:    
+    entity_id: !input remote_entity
     command: >
       {% set name = trigger.event.data.key_name %}
       {% set keys = {
@@ -41,4 +41,3 @@ action:
           } 
       %}
       {{keys[name]}}
-  target: !input remote_entity
