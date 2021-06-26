@@ -64,7 +64,7 @@ class XiaomiRemote(RemoteEntity):
         key = command[0]
         _LOGGER.debug(command)
         actionKeys = {
-            'sleep': ['power', 'wait', 'right', 'wait', 'right', 'wait', 'enter'],
+            'sleep': ['power', 'right', 'right', 'enter'],
             'power': ['power'],
             'up': ['up'],
             'down': ['down'],
@@ -76,7 +76,10 @@ class XiaomiRemote(RemoteEntity):
             'menu': ['menu'],
             'volumedown': ['volumedown'],
             'volumeup': ['volumeup'],
-            # 搜索功能
+            # 开启调试模式（最后两个键是弹窗确定，第一次需要）
+            'adb': ['right', 'right', 'right', 'enter', 'down', 'down', 'enter', 'up', 'enter', 'left', 'enter'],
+            # 酷喵搜索
+            'kumiao_search': ['up', 'up', 'left', 'left', 'left', 'enter'],
         }
         if key in actionKeys:
             await self.send_keystrokes(actionKeys[key])
@@ -86,13 +89,15 @@ class XiaomiRemote(RemoteEntity):
         try:
             tv_url = 'http://{}:6095/controller?action=keyevent&keycode='.format(self.ip)
             request_timeout = aiohttp.ClientTimeout(total=1)
+            
             for keystroke in keystrokes:
-                if keystroke == 'wait':
+                async with aiohttp.ClientSession(timeout=request_timeout) as session:
+                    async with session.get(tv_url + keystroke) as response:
+                        if response.status != 200:
+                            return False
+                # 如果是组合按键，则延时
+                if len(keystrokes) > 1:
                     time.sleep(0.7)
-                else:
-                    async with aiohttp.ClientSession(timeout=request_timeout) as session:
-                        async with session.get(tv_url + keystroke) as response:
-                            if response.status != 200:
-                                return False
+
         except Exception as ex:
             _LOGGER.debug(ex)
