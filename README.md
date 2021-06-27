@@ -21,6 +21,13 @@ logger:
     custom_components.xiaomi_tv: debug
 ```
 
+> 自定义配置`customize.yaml`
+```yaml
+# 控制音量
+media_player.dian_shi:
+  dlna: media_player.a_r_c_acadegc_3ca
+```
+
 > 开机事件自动化监听(触发条件)
 ```yaml
 platform: event
@@ -42,3 +49,6 @@ event_data:
 - 菜单：`menu`
 - 确定：`enter`
 - 返回：`back`
+
+> 功能命令
+- 清除运行程序：`clear`

@@ -126,9 +126,15 @@ class XiaomiTV(MediaPlayerEntity):
         # 检测当前IP是否在线
         host = ping(self.ip, count=1, interval=0.2)
         self._state = host.is_alive and STATE_ON or STATE_OFF
-        if self._state == STATE_ON and len(self._source_list) == 0:
-            self.getsysteminfo()
-            self.get_apps()
+        _len = len(self._source_list)
+        if host.is_alive:
+            if _len == 0:
+                self.getsysteminfo()
+                self.get_apps()
+        else:
+            if _len > 0:
+                self._sound_mode_list = []
+                self._source_list = []
 
     # 选择应用
     def select_source(self, source):
@@ -160,19 +166,16 @@ class XiaomiTV(MediaPlayerEntity):
 
     def mute_volume(self, mute):
         if mute:
-            count = 0
-            while count > 30:
-                self.volume_down()
+            self.set_volume_level(0)
         else:
-            self.set_volume_level(0.3)
+            self.set_volume_level(0.5)
 
     def set_volume_level(self, volume):
-        if self.ethmac is not None:
-            volum = int(volume * 50)
-            ts = str(time.time())[-5:]
-            data = f'mitvsignsalt{volum}{self.ethmac}{ts}'
-            sign = hashlib.md5(data.encode(encoding='UTF-8')).hexdigest()
-            self.http(f'general?action=setVolum&volum={volum}&ts={ts}&sign={sign}')
+        hass = self.hass
+        entity_id = self.attributes.get('dlna')
+        state = hass.states.get(entity_id)
+        if state is not None:
+            hass.services.call('media_player', 'set_volume_level', {'entity_id': entity_id, 'volume': volume})
 
     def media_play(self):
         self.keyevent('enter')

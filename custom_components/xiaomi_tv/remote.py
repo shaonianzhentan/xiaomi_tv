@@ -77,7 +77,23 @@ class XiaomiRemote(RemoteEntity):
             'volumedown': ['volumedown'],
             'volumeup': ['volumeup'],
             # 开启调试模式（最后两个键是弹窗确定，第一次需要）
-            'adb': ['right', 'right', 'right', 'enter', 'down', 'down', 'enter', 'up', 'enter', 'left', 'enter'],
+            'adb': [
+                # 打开菜单
+                'home', 'menu',
+                # 打开设置
+                'right', 'right', 'right', 'enter', 
+                # 打开账号与安全
+                'right', 'right', 'right', 'enter', 
+                # 选择ADB高度
+                'down', 'down', 'enter', 
+                # 选择开启
+                'up', 'enter', 
+                # 二次确定
+                'down', 'left', 'enter'],
+            # 清除程序
+            'clear': ['home', 'home', 'down', 'enter'],
+            # 小米搜索
+            'kumiao_search': ['home', 'up', 'up', 'enter'],
             # 酷喵搜索
             'kumiao_search': ['up', 'up', 'left', 'left', 'left', 'enter'],
         }
