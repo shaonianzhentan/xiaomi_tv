@@ -13,6 +13,7 @@ from homeassistant.components.media_player.const import (
     SUPPORT_VOLUME_MUTE,
     SUPPORT_SELECT_SOURCE,
     SUPPORT_SELECT_SOUND_MODE,
+    SUPPORT_VOLUME_MUTE,
     SUPPORT_PLAY_MEDIA,
 )
 from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON
@@ -23,7 +24,8 @@ DEFAULT_NAME = "小米电视"
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_XIAOMI_TV = SUPPORT_VOLUME_STEP | SUPPORT_VOLUME_MUTE | SUPPORT_VOLUME_SET | \
-    SUPPORT_TURN_ON | SUPPORT_TURN_OFF | SUPPORT_SELECT_SOURCE | SUPPORT_SELECT_SOUND_MODE | SUPPORT_PLAY_MEDIA
+    SUPPORT_TURN_ON | SUPPORT_TURN_OFF | SUPPORT_SELECT_SOURCE | SUPPORT_SELECT_SOUND_MODE | \
+    SUPPORT_PLAY_MEDIA | SUPPORT_VOLUME_MUTE
 
 # No host is needed for configuration, however it can be set.
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -50,6 +52,7 @@ class XiaomiTV(MediaPlayerEntity):
         self.ip = ip
         self._name = name
         self._volume_level = 1
+        self._is_volume_muted = True
         self._state = STATE_OFF
         self._source_list = []
         self._sound_mode_list = []
@@ -89,6 +92,10 @@ class XiaomiTV(MediaPlayerEntity):
     @property
     def volume_level(self):
         return self._volume_level
+
+    @property
+    def is_volume_muted(self):
+        return self._is_volume_muted
 
     @property
     def state(self):
@@ -169,6 +176,7 @@ class XiaomiTV(MediaPlayerEntity):
             self.set_volume_level(0)
         else:
             self.set_volume_level(0.5)
+        self._is_volume_muted = mute
 
     def set_volume_level(self, volume_level):
         self._volume_level = volume_level
