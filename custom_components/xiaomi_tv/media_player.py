@@ -172,9 +172,9 @@ class XiaomiTV(MediaPlayerEntity):
 
     def set_volume_level(self, volume):
         hass = self.hass
-        entity_id = self.attributes.get('dlna')
-        state = hass.states.get(entity_id)
-        if state is not None:
+        state = hass.states.get(self.entity_id)
+        entity_id = state.attributes.get('dlna', '')
+        if entity_id != '':
             hass.services.call('media_player', 'set_volume_level', {'entity_id': entity_id, 'volume': volume})
 
     def media_play(self):

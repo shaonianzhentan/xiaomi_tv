@@ -52,3 +52,5 @@ event_data:
 
 > 功能命令
 - 清除运行程序：`clear`
+- 小米历史记录：`xiaomi_history`
+- 小米搜索：`xiaomi_search`

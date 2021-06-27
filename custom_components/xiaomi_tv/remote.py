@@ -91,11 +91,17 @@ class XiaomiRemote(RemoteEntity):
                 # 二次确定
                 'down', 'left', 'enter'],
             # 清除程序
-            'clear': ['home', 'home', 'down', 'enter'],
+            'clear': ['home-fast', 'home', 'down', 'enter'],
+            # 小米历史记录
+            'xiaomi_history': ['home', 'down', 'enter', 'enter', 'enter'],
             # 小米搜索
-            'kumiao_search': ['home', 'up', 'up', 'enter'],
+            'xiaomi_search': ['home', 'up', 'up', 'enter'],
             # 酷喵搜索
-            'kumiao_search': ['up', 'up', 'left', 'left', 'left', 'enter'],
+            'youku_search': ['up', 'up', 'left', 'left', 'left', 'enter'],
+            # 奇异果搜索
+            'iqiyi_search': ['up', 'up', 'enter'],
+            # 腾讯视频搜索
+            'qqtv_search': ['up', 'right', 'enter'],
         }
         if key in actionKeys:
             await self.send_keystrokes(actionKeys[key])
@@ -107,12 +113,15 @@ class XiaomiRemote(RemoteEntity):
             request_timeout = aiohttp.ClientTimeout(total=1)
             
             for keystroke in keystrokes:
+                # 判断是否需要延时
+                is_fast = 'fast' in keystroke
+                keystroke = keystroke.replace('-fast', '')
                 async with aiohttp.ClientSession(timeout=request_timeout) as session:
                     async with session.get(tv_url + keystroke) as response:
                         if response.status != 200:
                             return False
                 # 如果是组合按键，则延时
-                if len(keystrokes) > 1:
+                if len(keystrokes) > 1 and is_fast == False:
                     time.sleep(0.7)
 
         except Exception as ex:
