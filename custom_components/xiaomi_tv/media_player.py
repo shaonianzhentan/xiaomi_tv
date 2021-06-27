@@ -170,13 +170,13 @@ class XiaomiTV(MediaPlayerEntity):
         else:
             self.set_volume_level(0.5)
 
-    def set_volume_level(self, volume):
-        self._volume_level = volume
+    def set_volume_level(self, volume_level):
+        self._volume_level = volume_level
         hass = self.hass
         state = hass.states.get(self.entity_id)
         entity_id = state.attributes.get('dlna', '')
         if entity_id != '':
-            hass.services.call('media_player', 'volume_set', {'entity_id': entity_id, 'volume': volume})
+            hass.services.call('media_player', 'volume_set', {'entity_id': entity_id, 'volume_level': volume_level})
 
     def media_play(self):
         self.keyevent('enter')

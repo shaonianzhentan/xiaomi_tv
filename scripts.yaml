@@ -91,6 +91,16 @@ xiaomi_tv_remote_xiaomi_search:
 xiaomi_tv_remote_iqiyi_search:
   alias: 小米电视奇异果搜索
   sequence:
+    - service: media_player.select_source
+      target:
+        entity_id: media_player.xiao_mi_dian_shi
+      data:
+        source: 银河奇异果
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 10
+        milliseconds: 0
     - service: remote.send_command
       target:
         entity_id: remote.xiao_mi_dian_shi
@@ -121,6 +131,16 @@ xiaomi_tv_remote_iqiyi_search:
 xiaomi_tv_remote_youku_search:
   alias: 小米电视酷喵搜索
   sequence:
+    - service: media_player.select_source
+      target:
+        entity_id: media_player.xiao_mi_dian_shi
+      data:
+        source: CIBN酷喵
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 10
+        milliseconds: 0
     - service: remote.send_command
       target:
         entity_id: remote.xiao_mi_dian_shi
@@ -181,6 +201,16 @@ xiaomi_tv_remote_youku_search:
 xiaomi_tv_remote_qqtv_search:
   alias: 小米电视腾讯视频搜索
   sequence:
+    - service: media_player.select_source
+      target:
+        entity_id: media_player.xiao_mi_dian_shi
+      data:
+        source: 云视听极光
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 10
+        milliseconds: 0
     - service: remote.send_command
       target:
         entity_id: remote.xiao_mi_dian_shi
