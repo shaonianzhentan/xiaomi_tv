@@ -76,7 +76,7 @@ class XiaomiRemote(RemoteEntity):
             'menu': ['menu'],
             'volumedown': ['volumedown'],
             'volumeup': ['volumeup'],
-            # 开启调试模式（最后两个键是弹窗确定，第一次需要）
+            # # 开启调试模式（最后两个键是弹窗确定，第一次需要）
             'adb': [
                 # 打开菜单
                 'home', 'menu',
@@ -90,19 +90,15 @@ class XiaomiRemote(RemoteEntity):
                 'up', 'enter', 
                 # 二次确定
                 'down', 'left', 'enter'],
-            # 小米历史记录
-            'xiaomi_history': ['home', 'down', 'enter', 'enter', 'enter'],
-            # 小米搜索
-            'xiaomi_search': ['home', 'up', 'up', 'enter'],
-            # 酷喵搜索
-            'youku_search': ['up', 'up', 'left', 'left', 'left', 'enter'],
-            # 奇异果搜索
-            'iqiyi_search': ['up', 'up', 'enter'],
-            # 腾讯视频搜索
-            'qqtv_search': ['up', 'right', 'enter'],
         }
         if key in actionKeys:
             await self.send_keystrokes(actionKeys[key])
+        else:
+            hass = self.hass
+            script_id = 'xiaomi_tv_remote_' + key
+            state = hass.states.get(f'script.{script_id}')
+            if state is not None:
+                await self.hass.services.async_call(state.domain, script_id)
 
     # 获取执行命令
     async def send_keystrokes(self, keystrokes):

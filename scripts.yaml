@@ -1,0 +1,210 @@
+xiaomi_tv_remote_xiaomi_history:
+  alias: 小米电视历史记录播放
+  sequence:
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: home
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: down
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: enter
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: enter
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 3
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: enter
+  mode: single
+  icon: mdi:remote-tv
+xiaomi_tv_remote_xiaomi_search:
+  alias: 小米电视搜索
+  sequence:
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: home
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: up
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: up
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: enter
+  mode: single
+  icon: mdi:remote-tv
+xiaomi_tv_remote_iqiyi_search:
+  alias: 小米电视奇异果搜索
+  sequence:
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: up
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: up
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: enter
+  mode: single
+  icon: mdi:remote-tv
+xiaomi_tv_remote_youku_search:
+  alias: 小米电视酷喵搜索
+  sequence:
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: up
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: up
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: left
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: left
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: left
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: enter
+  mode: single
+  icon: mdi:remote-tv
+xiaomi_tv_remote_qqtv_search:
+  alias: 小米电视腾讯视频搜索
+  sequence:
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: up
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: right
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - service: remote.send_command
+      target:
+        entity_id: remote.xiao_mi_dian_shi
+      data:
+        command: enter
+  mode: single
+  icon: mdi:remote-tv
