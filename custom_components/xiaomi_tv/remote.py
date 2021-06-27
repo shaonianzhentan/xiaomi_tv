@@ -90,8 +90,6 @@ class XiaomiRemote(RemoteEntity):
                 'up', 'enter', 
                 # 二次确定
                 'down', 'left', 'enter'],
-            # 清除程序
-            'clear': ['home-fast', 'home', 'down', 'enter'],
             # 小米历史记录
             'xiaomi_history': ['home', 'down', 'enter', 'enter', 'enter'],
             # 小米搜索
@@ -113,15 +111,12 @@ class XiaomiRemote(RemoteEntity):
             request_timeout = aiohttp.ClientTimeout(total=1)
             
             for keystroke in keystrokes:
-                # 判断是否需要延时
-                is_fast = 'fast' in keystroke
-                keystroke = keystroke.replace('-fast', '')
                 async with aiohttp.ClientSession(timeout=request_timeout) as session:
                     async with session.get(tv_url + keystroke) as response:
                         if response.status != 200:
                             return False
                 # 如果是组合按键，则延时
-                if len(keystrokes) > 1 and is_fast == False:
+                if len(keystrokes) > 1:
                     time.sleep(0.7)
 
         except Exception as ex:
