@@ -95,10 +95,10 @@ class XiaomiRemote(RemoteEntity):
         # 搜索视频
         if device != '':
             obj = {
-                'xiaomi_search': 'q',
-                'youku_search': 'q',
-                'iqiyi_search': 'q',
-                'qqtv_search': 'q'
+                'xiaomi_search': 'o',
+                'youku_search': 'p',
+                'iqiyi_search': 'o',
+                'qqtv_search': 'o'
             }
             if device in obj:
                 ks = KeySearch(obj[device])

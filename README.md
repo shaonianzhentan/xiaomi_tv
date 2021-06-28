@@ -24,7 +24,7 @@ logger:
 > 自定义配置`customize.yaml`
 ```yaml
 # 控制音量
-media_player.dian_shi:
+media_player.xiao_mi_dian_shi:
   dlna: media_player.a_r_c_acadegc_3ca
 ```
 

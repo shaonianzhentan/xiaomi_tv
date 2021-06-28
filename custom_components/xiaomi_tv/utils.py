@@ -80,7 +80,8 @@ class KeySearch():
                     arr.append('left' if x > 0 else 'right')
             if y != 0:
                 for i in range(abs(y)):
-                    arr.append('up' if y > 0 else 'down')
+                    arr.append('up' if y > 0 else 'down')            
+            arr.append('enter')
             # print(pos)
         return arr
 

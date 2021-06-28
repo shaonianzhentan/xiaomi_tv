@@ -52,7 +52,7 @@ class XiaomiTV(MediaPlayerEntity):
         self.ip = ip
         self._name = name
         self._volume_level = 1
-        self._is_volume_muted = True
+        self._is_volume_muted = False
         self._state = STATE_OFF
         self._source_list = []
         self._sound_mode_list = []
