@@ -14,6 +14,7 @@ from homeassistant.components.remote import (
 from homeassistant.const import CONF_HOST, CONF_NAME
 import homeassistant.helpers.config_validation as cv
 from .const import DOMAIN, DEFAULT_NAME
+from .utils import KeySearch
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,7 +61,7 @@ class XiaomiRemote(RemoteEntity):
          
     async def async_send_command(self, command, **kwargs):
         """Send commands to a device."""
-        # device = kwargs.get('device', '')
+        device = kwargs.get('device', '')
         key = command[0]
         _LOGGER.debug(command)
         actionKeys = {
@@ -91,6 +92,19 @@ class XiaomiRemote(RemoteEntity):
                 # 二次确定
                 'down', 'left', 'enter'],
         }
+        # 搜索视频
+        if device != '':
+            obj = {
+                'xiaomi_search': 'q',
+                'youku_search': 'q',
+                'iqiyi_search': 'q',
+                'qqtv_search': 'q'
+            }
+            if device in obj:
+                ks = KeySearch(obj[device])
+                actionKeys[device] = ks.getKeys(key)
+                key = device
+
         if key in actionKeys:
             await self.send_keystrokes(actionKeys[key])
         else:

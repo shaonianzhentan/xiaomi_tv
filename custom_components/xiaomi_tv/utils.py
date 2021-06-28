@@ -61,32 +61,45 @@ arr = [
     ['y', 'z', '', '', '', '']
 ]
 
-lastValue = 'p'
+class KeySearch():
 
-def getPosition(value):    
-    global lastValue
-    index = 0
-    for item in arr:
-        if lastValue in item:
-            y1 = index
-        if value in item:
-            y2 = index
-        index += 1
-    x1 = arr[y1].index(lastValue)
-    x2 = arr[y2].index(value)
-    # print('上+ 下-', y1, y2, y1 - y2)    
-    # print('左+ 右-',x1, x2, x1 - x2)
-    lastValue = value
-    return {
-        'x': x1 - x2,
-        'y': y1 - y2
-    }
+    def __init__(self, lastValue):
+        self.lastValue = lastValue
 
-def getPinyin(string):
-    if string == None:
-        return None
-    lst = list(string)
-    for l in lst:        
-        print(getPosition(single_get_first(l)))
- 
-print(getPinyin('大江大河'))
+    def getKeys(self, string):
+        if string == None:
+            return None
+        arr = []
+        lst = list(string)    
+        for l in lst:
+            pos = self.getPosition(single_get_first(l))
+            x = pos['x']
+            y = pos['y']
+            if x != 0:
+                for i in range(abs(x)):
+                    arr.append('left' if x > 0 else 'right')
+            if y != 0:
+                for i in range(abs(y)):
+                    arr.append('up' if y > 0 else 'down')
+            # print(pos)
+        return arr
+
+    # 获取位置
+    def getPosition(self, value):
+        index = 0
+        for item in arr:
+            if self.lastValue in item:
+                y1 = index
+            if value in item:
+                y2 = index
+            index += 1
+        x1 = arr[y1].index(self.lastValue)
+        x2 = arr[y2].index(value)
+        # print('上+ 下-', y1, y2, y1 - y2)
+        # print('左+ 右-',x1, x2, x1 - x2)
+        self.lastValue = value
+        return {
+            'x': x1 - x2,
+            'y': y1 - y2
+        }
+        
