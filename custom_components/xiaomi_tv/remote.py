@@ -123,13 +123,18 @@ class XiaomiRemote(RemoteEntity):
             request_timeout = aiohttp.ClientTimeout(total=1)
             
             for keystroke in keystrokes:
+                wait = 0.7
+                if '-' in keystroke:
+                    arr = keystroke.split('-')
+                    keystroke = arr[0]
+                    wait = float(arr[1])
                 async with aiohttp.ClientSession(timeout=request_timeout) as session:
                     async with session.get(tv_url + keystroke) as response:
                         if response.status != 200:
                             return False
                 # 如果是组合按键，则延时
                 if len(keystrokes) > 1:
-                    time.sleep(0.7)
+                    time.sleep(wait)
 
         except Exception as ex:
             _LOGGER.debug(ex)

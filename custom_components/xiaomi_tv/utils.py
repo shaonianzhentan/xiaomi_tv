@@ -96,6 +96,8 @@ class KeySearch():
                 for j in range(i):
                     _list.append('right')
                 _list.append('down')
+                _list.append('enter-2')
+                _list.append('enter')
                 return _list
             index += 1
 
