@@ -94,16 +94,18 @@ class XiaomiRemote(RemoteEntity):
         }
         # 搜索视频
         if device != '':
-            obj = {
-                'xiaomi_search': 'o',
-                'youku_search': 'p',
-                'iqiyi_search': 'o',
-                'qqtv_search': 'o'
-            }
-            if device in obj:
-                ks = KeySearch(obj[device])
-                actionKeys[device] = ks.getKeys(key)
-                key = device
+            arr = device.split('-')
+            if len(arr) == 2 and arr[0] == 'search':
+                # 'xiaomi_search': 'o',
+                # 'youku_search': 'p',
+                # 'iqiyi_search': 'o',
+                # 'qqtv_search': 'o'
+                lastChar = arr[1]
+                ks = KeySearch(lastChar)
+                actionKeys[key] = ks.getKeys(key)
+        # 连续按键
+        if ',' in key:
+            actionKeys[key] = key.split(',')
 
         if key in actionKeys:
             await self.send_keystrokes(actionKeys[key])

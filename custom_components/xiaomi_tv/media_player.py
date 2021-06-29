@@ -78,7 +78,7 @@ class XiaomiTV(MediaPlayerEntity):
                 # '无线投屏': 'com.xiaomi.mitv.smartshare'
             }
         # mitv ethernet Mac address
-        self._attributes = {}
+        self._attributes = { 'ver': '1.0' }
 
     @property
     def name(self):

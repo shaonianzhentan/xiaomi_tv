@@ -83,7 +83,21 @@ class KeySearch():
                     arr.append('up' if y > 0 else 'down')            
             arr.append('enter')
             # print(pos)
+        arr.extend(self.getLastKeys())
         return arr
+
+    # 计算最后字符的偏移量
+    def getLastKeys(self):
+        _list = []
+        index = 0        
+        for item in arr:
+            if self.lastValue in item:
+                i = len(item) - arr[index].index(self.lastValue) + 1
+                for j in range(i):
+                    _list.append('right')
+                _list.append('down')
+                return _list
+            index += 1
 
     # 获取位置
     def getPosition(self, value):
@@ -103,4 +117,6 @@ class KeySearch():
             'x': x1 - x2,
             'y': y1 - y2
         }
-        
+
+# ks = KeySearch('o')
+# print(ks.getKeys("大江大河"))

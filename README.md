@@ -50,7 +50,9 @@ event_data:
 - 确定：`enter`
 - 返回：`back`
 
-> 功能命令
-- 清除运行程序：`clear`
-- 小米历史记录：`xiaomi_history`
-- 小米搜索：`xiaomi_search`
+> 功能命令（需要配置脚本）
+- 小米电视历史记录：`xiaomi_history`
+- 小米电视搜索：`xiaomi_search`
+- 奇异果搜索：`iqiyi_search`
+- 酷喵搜索：`youku_search`
+- 腾讯视频搜索：`qqtv_search`
