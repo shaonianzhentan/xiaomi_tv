@@ -95,12 +95,12 @@ class XiaomiRemote(RemoteEntity):
         # 搜索视频
         if device != '':
             arr = device.split('-')
-            if len(arr) == 2 and arr[0] == 'search':
+            if len(arr) == 3 and arr[0] == 'search':
                 # 'xiaomi_search': 'o',
                 # 'youku_search': 'p',
                 # 'iqiyi_search': 'o',
                 # 'qqtv_search': 'o'
-                type = arr[1]
+                type = str(arr[1])
                 lastChar = arr[2]
                 ks = KeySearch(lastChar, type)
                 actionKeys[key] = ks.getKeys(key)
