@@ -100,8 +100,9 @@ class XiaomiRemote(RemoteEntity):
                 # 'youku_search': 'p',
                 # 'iqiyi_search': 'o',
                 # 'qqtv_search': 'o'
-                lastChar = arr[1]
-                ks = KeySearch(lastChar)
+                type = arr[1]
+                lastChar = arr[2]
+                ks = KeySearch(lastChar, type)
                 actionKeys[key] = ks.getKeys(key)
         # 连续按键
         if ',' in key:

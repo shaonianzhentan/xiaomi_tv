@@ -63,8 +63,9 @@ arr = [
 
 class KeySearch():
 
-    def __init__(self, lastValue):
+    def __init__(self, lastValue, type):
         self.lastValue = lastValue
+        self.type = type
 
     def getKeys(self, string):
         if string == None:
@@ -92,12 +93,20 @@ class KeySearch():
         index = 0        
         for item in arr:
             if self.lastValue in item:
-                i = len(item) - arr[index].index(self.lastValue) + 1
+                i = len(item) - arr[index].index(self.lastValue)
                 for j in range(i):
                     _list.append('right')
-                _list.append('down')
-                _list.append('enter-2')
-                _list.append('enter')
+                # iqiyi、youku、qqtv
+                if self.type == '1':
+                    _list.append('right')
+                    _list.append('enter-2')
+                    _list.append('left')
+                    _list.append('enter')
+                else:
+                    _list.append('down')
+                    _list.append('right')
+                    _list.append('enter-2')
+                    _list.append('enter')
                 return _list
             index += 1
 
