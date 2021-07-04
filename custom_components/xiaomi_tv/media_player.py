@@ -136,8 +136,9 @@ class XiaomiTV(MediaPlayerEntity):
         _len = len(self._source_list)
         if host.is_alive:
             if _len == 0:
-                self.getsysteminfo()
-                self.get_apps()
+                res = self.getsysteminfo()
+                if res is not None:
+                    self.get_apps()
         else:
             if _len > 0:
                 self._sound_mode_list = []
@@ -232,6 +233,7 @@ class XiaomiTV(MediaPlayerEntity):
             # ['hdmi1', 'hdmi2', 'hdmi3', 'gallery', 'aux', 'tv', 'vga', 'av', 'dtmb']
             if '电视' in devicename:
                 self._sound_mode_list = ['hdmi1', 'hdmi2', 'hdmi3', 'gallery', 'aux', 'tv', 'vga', 'av', 'dtmb']
+            return res
 
     # 获取执行命令
     def http(self, url):
