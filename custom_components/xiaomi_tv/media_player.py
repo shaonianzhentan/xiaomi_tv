@@ -139,7 +139,7 @@ class XiaomiTV(MediaPlayerEntity):
         if entity_id != '':
             dlna = self.hass.states.get(entity_id)
             if dlna is not None:
-                self._state = dlna.state
+                self._state = dlna.state == STATE_ON and STATE_ON or STATE_OFF
         # 判断数据源
         _len = len(self._source_list)
         if host.is_alive:
