@@ -133,6 +133,13 @@ class XiaomiTV(MediaPlayerEntity):
         # 检测当前IP是否在线
         host = ping(self.ip, count=1, interval=0.2)
         self._state = host.is_alive and STATE_ON or STATE_OFF
+        # 如果配置了dlna，则判断dlna设备的状态
+        state = self.hass.states.get(self.entity_id)
+        entity_id = state.attributes.get('dlna', '')
+        if entity_id != '':
+            dlna = self.hass.states.get(entity_id)
+            self._state = dlna.state
+        # 判断数据源
         _len = len(self._source_list)
         if host.is_alive:
             if _len == 0:
