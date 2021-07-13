@@ -2,6 +2,9 @@
 
 小米电视
 
+https://www.bilibili.com/read/cv12067446
+
+
 > HomeAssistant配置
 ```yaml
 # 电视

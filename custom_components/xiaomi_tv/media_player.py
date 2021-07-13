@@ -57,6 +57,7 @@ class XiaomiTV(MediaPlayerEntity):
         self._source_list = []
         self._sound_mode_list = []
         # 已知应用列表
+        self.app_list = []
         self.apps = {
                 # '云视听极光': 'com.ktcp.video',
                 # '芒果TV': 'com.hunantv.license',
@@ -141,7 +142,7 @@ class XiaomiTV(MediaPlayerEntity):
             if dlna is not None:
                 self._state = dlna.state == STATE_ON and STATE_ON or STATE_OFF
         # 判断数据源
-        _len = len(self._source_list)
+        _len = len(self.app_list)
         if host.is_alive:
             if _len == 0:
                 res = self.getsysteminfo()
@@ -149,17 +150,16 @@ class XiaomiTV(MediaPlayerEntity):
                     self.get_apps()
         else:
             if _len > 0:
-                self._sound_mode_list = []
-                self._source_list = []
+                self.app_list = []
 
     # 选择应用
     def select_source(self, source):
-        if self.apps[source] is not None:
+        if self.apps[source] is not None and self.state == STATE_ON:
             self.execute('startapp&type=packagename&packagename=' + self.apps[source])
 
     # 选择数据源
     def select_source_mode(self, mode):
-        if self.sound_mode_list.count(mode) > 0:
+        if self.sound_mode_list.count(mode) > 0 and self.state == STATE_ON:
             self.execute('changesource&source=' + mode)
 
     def turn_off(self):
@@ -218,6 +218,7 @@ class XiaomiTV(MediaPlayerEntity):
         for name in self.apps:
             _source_list.append(name)
         self._source_list = _source_list
+        self.app_list = _source_list
 
     # 获取执行命令
     def execute(self, cmd):
