@@ -16,7 +16,7 @@ from homeassistant.components.media_player.const import (
     SUPPORT_VOLUME_MUTE,
     SUPPORT_PLAY_MEDIA,
 )
-from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON
+from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON, STATE_PLAYING, STATE_PAUSED
 import homeassistant.helpers.config_validation as cv
 
 DEFAULT_NAME = "小米电视"
@@ -140,7 +140,7 @@ class XiaomiTV(MediaPlayerEntity):
         if entity_id != '':
             dlna = self.hass.states.get(entity_id)
             if dlna is not None:
-                self._state = dlna.state == STATE_ON and STATE_ON or STATE_OFF
+                self._state = [STATE_ON, STATE_PLAYING, STATE_PAUSED].count(dlna.state) > 0 and STATE_ON or STATE_OFF
         # 判断数据源
         _len = len(self.app_list)
         if host.is_alive:
