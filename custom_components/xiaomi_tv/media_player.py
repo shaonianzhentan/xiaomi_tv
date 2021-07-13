@@ -129,18 +129,22 @@ class XiaomiTV(MediaPlayerEntity):
     def extra_state_attributes(self):
         return self._attributes
 
+    @property
+    def dlna_device(self):
+        state = self.hass.states.get(self.entity_id)
+        entity_id = state.attributes.get('dlna', '')
+        if entity_id != '':
+            return self.hass.states.get(entity_id)
+
     # 更新属性
     def update(self):
         # 检测当前IP是否在线
         host = ping(self.ip, count=1, interval=0.2)
         self._state = host.is_alive and STATE_ON or STATE_OFF
         # 如果配置了dlna，则判断dlna设备的状态
-        state = self.hass.states.get(self.entity_id)
-        entity_id = state.attributes.get('dlna', '')
-        if entity_id != '':
-            dlna = self.hass.states.get(entity_id)
-            if dlna is not None:
-                self._state = [STATE_ON, STATE_PLAYING, STATE_PAUSED].count(dlna.state) > 0 and STATE_ON or STATE_OFF
+        dlna = self.dlna_device
+        if dlna is not None:
+            self._state = [STATE_ON, STATE_PLAYING, STATE_PAUSED].count(dlna.state) > 0 and STATE_ON or STATE_OFF
         # 判断数据源
         _len = len(self.app_list)
         if host.is_alive:
@@ -189,17 +193,19 @@ class XiaomiTV(MediaPlayerEntity):
 
     def set_volume_level(self, volume_level):
         self._volume_level = volume_level
-        hass = self.hass
-        state = hass.states.get(self.entity_id)
-        entity_id = state.attributes.get('dlna', '')
-        if entity_id != '':
-            hass.services.call('media_player', 'volume_set', {'entity_id': entity_id, 'volume_level': volume_level})
+        dlna = self.dlna_device
+        if dlna is not None:
+            self.hass.services.call('media_player', 'volume_set', {'entity_id': dlna.entity_id, 'volume_level': volume_level})
 
     def media_play(self):
-        self.keyevent('enter')
+        dlna = self.dlna_device
+        if dlna is not None:
+            self.hass.services.call('media_player', 'media_play', {'entity_id': dlna.entity_id})
 
     def media_pause(self):
-        self.keyevent('enter')
+        dlna = self.dlna_device
+        if dlna is not None:
+            self.hass.services.call('media_player', 'media_pause', {'entity_id': dlna.entity_id})
 
     # 发送事件
     def fire_event(self, cmd):
