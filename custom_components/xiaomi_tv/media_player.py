@@ -13,8 +13,10 @@ from homeassistant.components.media_player.const import (
     SUPPORT_VOLUME_MUTE,
     SUPPORT_SELECT_SOURCE,
     SUPPORT_SELECT_SOUND_MODE,
-    SUPPORT_VOLUME_MUTE,
     SUPPORT_PLAY_MEDIA,
+    SUPPORT_PAUSE,
+    SUPPORT_NEXT_TRACK,
+    SUPPORT_PREVIOUS_TRACK
 )
 from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON, STATE_PLAYING, STATE_PAUSED
 import homeassistant.helpers.config_validation as cv
@@ -25,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_XIAOMI_TV = SUPPORT_VOLUME_STEP | SUPPORT_VOLUME_MUTE | SUPPORT_VOLUME_SET | \
     SUPPORT_TURN_ON | SUPPORT_TURN_OFF | SUPPORT_SELECT_SOURCE | SUPPORT_SELECT_SOUND_MODE | \
-    SUPPORT_PLAY_MEDIA | SUPPORT_VOLUME_MUTE
+    SUPPORT_PLAY_MEDIA | SUPPORT_PAUSE | SUPPORT_PREVIOUS_TRACK | SUPPORT_NEXT_TRACK
 
 # No host is needed for configuration, however it can be set.
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -142,9 +144,11 @@ class XiaomiTV(MediaPlayerEntity):
         host = ping(self.ip, count=1, interval=0.2)
         self._state = host.is_alive and STATE_ON or STATE_OFF
         # 如果配置了dlna，则判断dlna设备的状态
+        '''
         dlna = self.dlna_device
         if dlna is not None:
             self._state = [STATE_ON, STATE_PLAYING, STATE_PAUSED].count(dlna.state) > 0 and STATE_ON or STATE_OFF
+        '''
         # 判断数据源
         _len = len(self.app_list)
         if host.is_alive:
@@ -206,6 +210,12 @@ class XiaomiTV(MediaPlayerEntity):
         dlna = self.dlna_device
         if dlna is not None:
             self.hass.services.call('media_player', 'media_pause', {'entity_id': dlna.entity_id})
+
+    def media_next_track(self):
+        print('下一个频道')
+
+    def media_previous_track(self):
+        print('上一个频道')
 
     # 发送事件
     def fire_event(self, cmd):
