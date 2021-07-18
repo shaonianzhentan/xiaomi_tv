@@ -1,6 +1,6 @@
 """Add support for the Xiaomi TVs."""
 import logging
-import requests, time, hashlib
+import requests
 import voluptuous as vol
 from icmplib import ping
 
@@ -14,6 +14,7 @@ from homeassistant.components.media_player.const import (
     SUPPORT_SELECT_SOURCE,
     SUPPORT_SELECT_SOUND_MODE,
     SUPPORT_PLAY_MEDIA,
+    SUPPORT_PLAY,
     SUPPORT_PAUSE,
     SUPPORT_NEXT_TRACK,
     SUPPORT_PREVIOUS_TRACK
@@ -21,13 +22,13 @@ from homeassistant.components.media_player.const import (
 from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON, STATE_PLAYING, STATE_PAUSED
 import homeassistant.helpers.config_validation as cv
 
-DEFAULT_NAME = "小米电视"
+from .const import DEFAULT_NAME, VERSION
 
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_XIAOMI_TV = SUPPORT_VOLUME_STEP | SUPPORT_VOLUME_MUTE | SUPPORT_VOLUME_SET | \
     SUPPORT_TURN_ON | SUPPORT_TURN_OFF | SUPPORT_SELECT_SOURCE | SUPPORT_SELECT_SOUND_MODE | \
-    SUPPORT_PLAY_MEDIA | SUPPORT_PAUSE | SUPPORT_PREVIOUS_TRACK | SUPPORT_NEXT_TRACK
+    SUPPORT_PLAY_MEDIA | SUPPORT_PLAY | SUPPORT_PAUSE | SUPPORT_PREVIOUS_TRACK | SUPPORT_NEXT_TRACK
 
 # No host is needed for configuration, however it can be set.
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -81,7 +82,7 @@ class XiaomiTV(MediaPlayerEntity):
                 # '无线投屏': 'com.xiaomi.mitv.smartshare'
             }
         # mitv ethernet Mac address
-        self._attributes = { 'ver': '1.1' }
+        self._attributes = { 'ver': VERSION }
 
     @property
     def name(self):
@@ -200,6 +201,15 @@ class XiaomiTV(MediaPlayerEntity):
         dlna = self.dlna_device
         if dlna is not None:
             self.hass.services.call('media_player', 'volume_set', {'entity_id': dlna.entity_id, 'volume_level': volume_level})
+
+    def play_media(self, media_type, media_id, **kwargs):
+        dlna = self.dlna_device
+        if dlna is not None:
+            self.hass.services.call('media_player', 'play_media', {
+                'entity_id': dlna.entity_id,
+                'media_content_id': media_id,
+                'media_content_type': media_type
+            })
 
     def media_play(self):
         dlna = self.dlna_device

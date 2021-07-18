@@ -77,7 +77,7 @@ class XiaomiRemote(RemoteEntity):
             'menu': ['menu'],
             'volumedown': ['volumedown'],
             'volumeup': ['volumeup'],
-            # # 开启调试模式（最后两个键是弹窗确定，第一次需要）
+            # 开启调试模式（最后两个键是弹窗确定，第一次需要）
             'adb': [
                 # 打开菜单
                 'home', 'menu',
@@ -91,6 +91,10 @@ class XiaomiRemote(RemoteEntity):
                 'up', 'enter', 
                 # 二次确定
                 'down', 'left', 'enter'],
+            # 小米历史记录播放
+            'xiaomi_history': ['home-2', 'down-2', 'enter-2', 'enter-3', 'enter'],
+            # 小米电视搜索
+            'xiaomi_search': ['home-2', 'up-2', 'up-2', 'enter']
         }
         # 搜索视频
         if device != '':
