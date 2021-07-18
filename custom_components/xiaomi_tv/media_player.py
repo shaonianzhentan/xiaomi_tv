@@ -145,11 +145,9 @@ class XiaomiTV(MediaPlayerEntity):
         host = ping(self.ip, count=1, interval=0.2)
         self._state = host.is_alive and STATE_ON or STATE_OFF
         # 如果配置了dlna，则判断dlna设备的状态
-        '''
         dlna = self.dlna_device
-        if dlna is not None:
-            self._state = [STATE_ON, STATE_PLAYING, STATE_PAUSED].count(dlna.state) > 0 and STATE_ON or STATE_OFF
-        '''
+        if dlna is not None and [STATE_ON, STATE_PLAYING, STATE_PAUSED].count(dlna.state) > 0:
+            self._state = dlna.state
         # 判断数据源
         _len = len(self.app_list)
         if host.is_alive:

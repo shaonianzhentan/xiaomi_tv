@@ -29,6 +29,17 @@ logger:
 # 控制音量
 media_player.xiao_mi_dian_shi:
   dlna: media_player.a_r_c_acadegc_3ca
+  xiaodu_devices:
+    - name: 打开奇异果
+      service: media_player.select_source
+      data:
+        entity_id: media_player.xiao_mi_dian_shi
+        source: 银河奇异果
+    - name: 打开酷喵
+      service: media_player.select_source
+      data:
+        entity_id: media_player.xiao_mi_dian_shi
+        source: CIBN酷喵
 ```
 
 > 开机事件自动化监听(触发条件)
