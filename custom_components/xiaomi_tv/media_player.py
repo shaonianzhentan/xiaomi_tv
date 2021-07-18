@@ -19,7 +19,7 @@ from homeassistant.components.media_player.const import (
     SUPPORT_NEXT_TRACK,
     SUPPORT_PREVIOUS_TRACK
 )
-from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON, STATE_PLAYING, STATE_PAUSED
+from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON, STATE_PLAYING, STATE_PAUSED, STATE_IDLE
 import homeassistant.helpers.config_validation as cv
 
 from .const import DEFAULT_NAME, VERSION
@@ -57,6 +57,7 @@ class XiaomiTV(MediaPlayerEntity):
         self._volume_level = 1
         self._is_volume_muted = False
         self._state = STATE_OFF
+        self.is_alive = False
         self._source_list = []
         self._sound_mode_list = []
         # 已知应用列表
@@ -143,6 +144,7 @@ class XiaomiTV(MediaPlayerEntity):
     def update(self):
         # 检测当前IP是否在线
         host = ping(self.ip, count=1, interval=0.2)
+        self.is_alive = host.is_alive
         self._state = host.is_alive and STATE_ON or STATE_OFF
         # 如果配置了dlna，则判断dlna设备的状态
         dlna = self.dlna_device
@@ -150,7 +152,7 @@ class XiaomiTV(MediaPlayerEntity):
             self._state = dlna.state
         # 判断数据源
         _len = len(self.app_list)
-        if host.is_alive:
+        if self.is_alive:
             if _len == 0:
                 res = self.getsysteminfo()
                 if res is not None:
@@ -161,12 +163,12 @@ class XiaomiTV(MediaPlayerEntity):
 
     # 选择应用
     def select_source(self, source):
-        if self.apps[source] is not None and self.state == STATE_ON:
+        if self.apps[source] is not None:
             self.execute('startapp&type=packagename&packagename=' + self.apps[source])
 
     # 选择数据源
     def select_source_mode(self, mode):
-        if self.sound_mode_list.count(mode) > 0 and self.state == STATE_ON:
+        if self.sound_mode_list.count(mode) > 0:
             self.execute('changesource&source=' + mode)
 
     def turn_off(self):
@@ -211,19 +213,25 @@ class XiaomiTV(MediaPlayerEntity):
 
     def media_play(self):
         dlna = self.dlna_device
-        if dlna is not None:
+        if dlna is not None and dlna.state == STATE_PAUSED:
             self.hass.services.call('media_player', 'media_play', {'entity_id': dlna.entity_id})
+        else:
+            self.keyevent('enter')
 
     def media_pause(self):
         dlna = self.dlna_device
-        if dlna is not None:
+        if dlna is not None and dlna.state == STATE_PLAYING:
             self.hass.services.call('media_player', 'media_pause', {'entity_id': dlna.entity_id})
+        else:
+            self.keyevent('enter')
 
     def media_next_track(self):
         print('下一个频道')
+        self.keyevent('right')
 
     def media_previous_track(self):
         print('上一个频道')
+        self.keyevent('left')
 
     # 发送事件
     def fire_event(self, cmd):
@@ -271,10 +279,11 @@ class XiaomiTV(MediaPlayerEntity):
     # 获取执行命令
     def http(self, url):
         try:
-            request_timeout = 0.1
-            res = requests.get(f'http://{self.ip}:6095/{url}', timeout=request_timeout)
-            res.encoding = 'utf-8'
-            return res.json()
+            if self.is_alive:
+                request_timeout = 0.1
+                res = requests.get(f'http://{self.ip}:6095/{url}', timeout=request_timeout)
+                res.encoding = 'utf-8'
+                return res.json()
         except Exception as ex:
             _LOGGER.debug(ex)
         return None

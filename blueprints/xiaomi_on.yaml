@@ -20,5 +20,6 @@ blueprint:
 trigger:
   - platform: state
     entity_id: !input media_entity
-    to: 'on'
+    from: unavailable
+    to: idle
 action: !input 'tv_on'
