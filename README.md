@@ -30,6 +30,16 @@ logger:
 media_player.xiao_mi_dian_shi:
   dlna: media_player.a_r_c_acadegc_3ca
   xiaodu_devices:
+    - name: 打开视频头条
+      service: media_player.select_source
+      data:
+        entity_id: media_player.xiao_mi_dian_shi
+        source: 视频头条
+    - name: 打开科迪
+      service: media_player.select_source
+      data:
+        entity_id: media_player.xiao_mi_dian_shi
+        source: Kodi
     - name: 打开奇异果
       service: media_player.select_source
       data:
@@ -40,6 +50,31 @@ media_player.xiao_mi_dian_shi:
       data:
         entity_id: media_player.xiao_mi_dian_shi
         source: CIBN酷喵
+    - name: 打开云视听
+      service: media_player.select_source
+      data:
+        entity_id: media_player.xiao_mi_dian_shi
+        source: 云视听极光
+    - name: 打开哔哩哔哩
+      service: media_player.select_source
+      data:
+        entity_id: media_player.xiao_mi_dian_shi
+        source: 哔哩哔哩
+    - name: 打开芒果TV
+      service: media_player.select_source
+      data:
+        entity_id: media_player.xiao_mi_dian_shi
+        source: 芒果TV
+    - name: 播放历史记录
+      service: remote.send_command
+      data:
+        entity_id: remote.xiao_mi_dian_shi
+        command: xiaomi_history
+    - name: 打开小米电视搜索
+      service: remote.send_command
+      data:
+        entity_id: remote.xiao_mi_dian_shi
+        command: xiaomi_search
 ```
 
 > 开机事件自动化监听(触发条件)
