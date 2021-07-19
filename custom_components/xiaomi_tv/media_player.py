@@ -280,7 +280,7 @@ class XiaomiTV(MediaPlayerEntity):
     def http(self, url):
         try:
             if self.is_alive:
-                request_timeout = 0.1
+                request_timeout = 0.2
                 res = requests.get(f'http://{self.ip}:6095/{url}', timeout=request_timeout)
                 res.encoding = 'utf-8'
                 return res.json()
