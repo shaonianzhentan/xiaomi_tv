@@ -203,7 +203,7 @@ class XiaomiTV(MediaPlayerEntity):
             # 兼容小米电视音量控制
             if volume_level <= 0.15:
                 arr = [0, 0.05, 0.1, 0.2, 0.25, 0.3, 0.4, 0.45, 0.5, 0.6, 0.65, 0.7, 0.75, 0.85, 0.9, 1]
-                volume_level = arr[volume_level * 100]
+                volume_level = arr[int(volume_level * 100)]
             # 调整音量
             self.hass.services.call('media_player', 'volume_set', {'entity_id': dlna.entity_id, 'volume_level': volume_level})
 
