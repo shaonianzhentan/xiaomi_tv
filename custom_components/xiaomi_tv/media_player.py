@@ -19,7 +19,7 @@ from homeassistant.components.media_player.const import (
     SUPPORT_NEXT_TRACK,
     SUPPORT_PREVIOUS_TRACK
 )
-from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON, STATE_PLAYING, STATE_PAUSED, STATE_IDLE
+from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON, STATE_PLAYING, STATE_PAUSED, STATE_IDLE, STATE_UNAVAILABLE
 import homeassistant.helpers.config_validation as cv
 
 from .const import DEFAULT_NAME, VERSION
@@ -140,6 +140,13 @@ class XiaomiTV(MediaPlayerEntity):
         if entity_id != '':
             return self.hass.states.get(entity_id)
 
+    @property
+    def kodi_device(self):
+        state = self.hass.states.get(self.entity_id)
+        entity_id = state.attributes.get('kodi', '')
+        if entity_id != '':
+            return self.hass.states.get(entity_id)
+
     # 更新属性
     def update(self):
         # 检测当前IP是否在线
@@ -207,11 +214,17 @@ class XiaomiTV(MediaPlayerEntity):
             # 调整音量
             self.hass.services.call('media_player', 'volume_set', {'entity_id': dlna.entity_id, 'volume_level': volume_level})
 
-    def play_media(self, media_type, media_id, **kwargs):
+    def play_media(self, media_type, media_id, **kwargs):            
         dlna = self.dlna_device
         if dlna is not None:
+            entity_id = dlna.entity_id
+            # 如果定义了Kodi，则使用指定播放器
+            kodi = self.kodi_device
+            if kodi is not None and [STATE_UNAVAILABLE, STATE_OFF].count(kodi.state) == 0:
+                entity_id = kodi.entity_id
+            # 播放视频
             self.hass.services.call('media_player', 'play_media', {
-                'entity_id': dlna.entity_id,
+                'entity_id': entity_id,
                 'media_content_id': media_id,
                 'media_content_type': media_type
             })

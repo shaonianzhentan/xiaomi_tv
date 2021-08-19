@@ -29,6 +29,7 @@ logger:
 # 控制音量
 media_player.xiao_mi_dian_shi:
   dlna: media_player.a_r_c_acadegc_3ca
+  kodi: media_player.android
   xiaodu_devices:
     - name: 打开视频头条
       service: media_player.select_source
