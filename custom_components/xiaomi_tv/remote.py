@@ -128,7 +128,7 @@ class XiaomiRemote(RemoteEntity):
             request_timeout = aiohttp.ClientTimeout(total=1)
             
             for keystroke in keystrokes:
-                wait = 0.7
+                wait = 1
                 if '-' in keystroke:
                     arr = keystroke.split('-')
                     keystroke = arr[0]
