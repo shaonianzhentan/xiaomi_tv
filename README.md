@@ -4,8 +4,6 @@
 
 https://www.bilibili.com/read/cv12067446
 
-## 注意：请使用已发布的 1.0版本，本版本正在测试
-
 > HomeAssistant配置
 ```yaml
 # 电视
@@ -53,6 +51,14 @@ event_data:
 - 奇异果搜索：`iqiyi_search`
 - 酷喵搜索：`youku_search`
 - 腾讯视频搜索：`qqtv_search`
+
+## 更新日志
+
+### v1.1
+- 集成DLNA服务
+
+### v1.0
+- 基本功能完成
 
 ## 如果这个项目对你有帮助，请我喝杯<del><small>咖啡</small></del><b>奶茶</b>吧😘
 |支付宝|微信|
