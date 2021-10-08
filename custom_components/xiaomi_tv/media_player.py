@@ -2,6 +2,10 @@
 import logging
 import requests
 import voluptuous as vol
+
+from async_upnp_client import UpnpFactory
+from async_upnp_client.aiohttp import AiohttpRequester
+from async_upnp_client.profiles.dlna import DmrDevice, TransportState
 from icmplib import ping
 
 from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerEntity
@@ -60,6 +64,7 @@ class XiaomiTV(MediaPlayerEntity):
         self.is_alive = False
         self._source_list = []
         self._sound_mode_list = []
+        self.dlna_device = None
         # 已知应用列表
         self.app_list = []
         self.apps = {
@@ -134,13 +139,6 @@ class XiaomiTV(MediaPlayerEntity):
         return self._attributes
 
     @property
-    def dlna_device(self):
-        state = self.hass.states.get(self.entity_id)
-        entity_id = state.attributes.get('dlna', '')
-        if entity_id != '':
-            return self.hass.states.get(entity_id)
-
-    @property
     def kodi_device(self):
         state = self.hass.states.get(self.entity_id)
         entity_id = state.attributes.get('kodi', '')
@@ -148,15 +146,24 @@ class XiaomiTV(MediaPlayerEntity):
             return self.hass.states.get(entity_id)
 
     # 更新属性
-    def update(self):
+    async def async_update(self):
         # 检测当前IP是否在线
         host = ping(self.ip, count=1, interval=0.2)
         self.is_alive = host.is_alive
         self._state = host.is_alive and STATE_ON or STATE_OFF
         # 如果配置了dlna，则判断dlna设备的状态
         dlna = self.dlna_device
-        if dlna is not None and [STATE_ON, STATE_PLAYING, STATE_PAUSED].count(dlna.state) > 0:
-            self._state = dlna.state
+        if dlna is not None:
+            if dlna.transport_state in (
+                TransportState.PLAYING,
+                TransportState.TRANSITIONING,
+            ):
+                self._state = STATE_PLAYING
+            elif dlna.transport_state in (
+                TransportState.PAUSED_PLAYBACK,
+                TransportState.PAUSED_RECORDING,
+            ):
+                self._state = STATE_PAUSED
         # 判断数据源
         _len = len(self.app_list)
         if self.is_alive:
@@ -164,46 +171,47 @@ class XiaomiTV(MediaPlayerEntity):
                 res = self.getsysteminfo()
                 if res is not None:
                     self.get_apps()
+                    await self.create_dlna_device()
         else:
             if _len > 0:
                 self.app_list = []
 
     # 选择应用
-    def select_source(self, source):
+    async def async_select_source(self, source):
         if self.apps[source] is not None:
             self.execute('startapp&type=packagename&packagename=' + self.apps[source])
 
     # 选择数据源
-    def select_source_mode(self, mode):
+    async def async_select_source_mode(self, mode):
         if self.sound_mode_list.count(mode) > 0:
             self.execute('changesource&source=' + mode)
 
-    def turn_off(self):
+    async def async_turn_off(self):
         if self._state != STATE_OFF:
             self.keyevent('power')
             self.fire_event('off')
             self._state = STATE_OFF
 
-    def turn_on(self):
+    async def async_turn_on(self):
         """Wake the TV back up from sleep."""
         if self._state != STATE_ON:
             self.fire_event('on')
             self._state = STATE_ON
 
-    def volume_up(self):
+    async def async_volume_up(self):
         self.keyevent('volumeup')
 
-    def volume_down(self):
+    async def async_volume_down(self):
         self.keyevent('volumedown')
 
-    def mute_volume(self, mute):
+    async def async_mute_volume(self, mute):
         if mute:
-            self.set_volume_level(0)
+            await self.set_volume_level(0)
         else:
-            self.set_volume_level(0.5)
+            await self.set_volume_level(0.5)
         self._is_volume_muted = mute
 
-    def set_volume_level(self, volume_level):
+    async def async_set_volume_level(self, volume_level):
         self._volume_level = volume_level
         dlna = self.dlna_device
         if dlna is not None:
@@ -212,42 +220,32 @@ class XiaomiTV(MediaPlayerEntity):
                 arr = [0, 0.05, 0.1, 0.2, 0.25, 0.3, 0.4, 0.45, 0.5, 0.6, 0.65, 0.7, 0.75, 0.85, 0.9, 1]
                 volume_level = arr[int(volume_level * 100)]
             # 调整音量
-            self.hass.services.call('media_player', 'volume_set', {'entity_id': dlna.entity_id, 'volume_level': volume_level})
+            await dlna.async_set_volume_level(volume_level)
 
-    def play_media(self, media_type, media_id, **kwargs):            
+    async def async_play_media(self, media_type, media_id, **kwargs):            
         dlna = self.dlna_device
         if dlna is not None:
-            entity_id = dlna.entity_id
-            # 如果定义了Kodi，则使用指定播放器
-            kodi = self.kodi_device
-            if kodi is not None and [STATE_UNAVAILABLE, STATE_OFF].count(kodi.state) == 0:
-                entity_id = kodi.entity_id
-            # 播放视频
-            self.hass.services.call('media_player', 'play_media', {
-                'entity_id': entity_id,
-                'media_content_id': media_id,
-                'media_content_type': media_type
-            })
+            await dlna.async_set_transport_uri(media_id, "小米电视 - HomeAssistant")
 
-    def media_play(self):
+    async def async_media_play(self):
         dlna = self.dlna_device
-        if dlna is not None and dlna.state == STATE_PAUSED:
-            self.hass.services.call('media_player', 'media_play', {'entity_id': dlna.entity_id})
+        if dlna is not None:
+            await dlna.async_play()
         else:
             self.keyevent('enter')
 
-    def media_pause(self):
+    async def async_media_pause(self):
         dlna = self.dlna_device
-        if dlna is not None and dlna.state == STATE_PLAYING:
-            self.hass.services.call('media_player', 'media_pause', {'entity_id': dlna.entity_id})
+        if dlna is not None:
+            await dlna.async_pause()
         else:
             self.keyevent('enter')
 
-    def media_next_track(self):
+    async def async_media_next_track(self):
         print('下一个频道')
         self.keyevent('right')
 
-    def media_previous_track(self):
+    async def async_media_previous_track(self):
         print('上一个频道')
         self.keyevent('left')
 
@@ -305,3 +303,14 @@ class XiaomiTV(MediaPlayerEntity):
         except Exception as ex:
             _LOGGER.debug(ex)
         return None
+
+    # 创建DLNA设备
+    async def create_dlna_device(self):
+        requester = AiohttpRequester()
+        factory = UpnpFactory(requester)
+        device = await factory.async_create_device(f"http://{self.ip}:49152/description.xml")
+
+        def event_handler(**args):
+            print(args)
+
+        self.dlna_device = DmrDevice(device, event_handler)
