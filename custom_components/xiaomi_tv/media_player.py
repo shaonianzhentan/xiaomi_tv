@@ -169,7 +169,6 @@ class XiaomiTV(MediaPlayerEntity):
         try:
             sk.connect((self.ip, 6095))
             # print("server port connect OK! ")
-            self._state = STATE_PLAYING
             # 如果配置了dlna，则判断dlna设备的状态
             dlna = self.dlna_device
             if dlna is not None:
@@ -186,7 +185,8 @@ class XiaomiTV(MediaPlayerEntity):
                 # 重新连接DLNA服务
                 if self.is_alive == False:
                     await self.create_dlna_device()
-
+            else:
+                self._state = STATE_PLAYING
             self.is_alive = True
             if _len == 0:
                 res = await self.getsysteminfo()
