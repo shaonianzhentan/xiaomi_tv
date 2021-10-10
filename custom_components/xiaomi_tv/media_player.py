@@ -162,44 +162,45 @@ class XiaomiTV(MediaPlayerEntity):
 
     # 更新属性
     async def async_update(self):
+        _len = len(self.app_list)
         # 检测当前IP是否在线
         sk = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         sk.settimeout(1)
         try:
             sk.connect((self.ip, 6095))
             # print("server port connect OK! ")
+            self._state = STATE_PLAYING
+            # 如果配置了dlna，则判断dlna设备的状态
+            dlna = self.dlna_device
+            if dlna is not None:
+                if dlna.transport_state in (
+                    TransportState.PLAYING,
+                    TransportState.TRANSITIONING,
+                ):
+                    self._state = STATE_PLAYING
+                elif dlna.transport_state in (
+                    TransportState.PAUSED_PLAYBACK,
+                    TransportState.PAUSED_RECORDING,
+                ):
+                    self._state = STATE_PAUSED
+                # 重新连接DLNA服务
+                if self.is_alive == False:
+                    await self.create_dlna_device()
+
             self.is_alive = True
-        except Exception:
-            # print("server port not connect!")
-            self.is_alive = False
-        
-        # print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-        sk.close()
-        self._state = self.is_alive and STATE_PLAYING or STATE_OFF
-        # 如果配置了dlna，则判断dlna设备的状态
-        dlna = self.dlna_device
-        if dlna is not None:
-            if dlna.transport_state in (
-                TransportState.PLAYING,
-                TransportState.TRANSITIONING,
-            ):
-                self._state = STATE_PLAYING
-            elif dlna.transport_state in (
-                TransportState.PAUSED_PLAYBACK,
-                TransportState.PAUSED_RECORDING,
-            ):
-                self._state = STATE_PAUSED
-        # 判断数据源
-        _len = len(self.app_list)
-        if self.is_alive:
             if _len == 0:
                 res = await self.getsysteminfo()
                 if res is not None:
-                    await self.get_apps()                
+                    await self.get_apps()
                     await self.create_dlna_device()
-        else:
+        except Exception:
+            # print("server port not connect!")
+            self.is_alive = False
+            self._state = STATE_OFF
             if _len > 0:
                 self.app_list = []
+        # print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        sk.close()
 
     # 选择应用
     async def async_select_source(self, source):
@@ -231,9 +232,9 @@ class XiaomiTV(MediaPlayerEntity):
 
     async def async_mute_volume(self, mute):
         if mute:
-            await self.set_volume_level(0)
+            await self.async_set_volume_level(0)
         else:
-            await self.set_volume_level(0.5)
+            await self.async_set_volume_level(0.5)
         self._is_volume_muted = mute
 
     async def async_set_volume_level(self, volume):
