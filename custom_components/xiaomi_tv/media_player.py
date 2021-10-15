@@ -1,9 +1,9 @@
 """Add support for the Xiaomi TVs."""
 import logging
 from types import resolve_bases
-import aiohttp, json, time
+import aiohttp, json, time, hmac, socket, hashlib
+from urllib.parse import urlencode, urlparse, parse_qsl
 
-import socket
 import voluptuous as vol
 
 from async_upnp_client import UpnpFactory, UpnpError
@@ -153,13 +153,6 @@ class XiaomiTV(MediaPlayerEntity):
     def extra_state_attributes(self):
         return self._attributes
 
-    @property
-    def kodi_device(self):
-        state = self.hass.states.get(self.entity_id)
-        entity_id = state.attributes.get('kodi', '')
-        if entity_id != '':
-            return self.hass.states.get(entity_id)
-
     # 更新属性
     async def async_update(self):
         _len = len(self.app_list)
@@ -192,6 +185,8 @@ class XiaomiTV(MediaPlayerEntity):
                 if res is not None:
                     await self.get_apps()
                     await self.create_dlna_device()
+            # 获取截图
+            await self.capturescreen()
         except Exception:
             # print("server port not connect!")
             self.is_alive = False
@@ -335,6 +330,30 @@ class XiaomiTV(MediaPlayerEntity):
         except Exception as ex:
             _LOGGER.debug(ex)
         return None
+
+    # 截图方法
+    async def capturescreen(self):
+        # 截图
+        params = self.with_opaque({'action': 'capturescreen', 'compressrate': 100})
+        res = await self.http(f'controller?{urlencode(params)}')
+        if res is not None:
+            rdt = res['data']
+            # 获取图片
+            token = rdt.get('token')
+            params = self.with_opaque({'action': 'getResource', 'name': 'screenCapture'}, token)
+            self._attr_media_image_url = f'http://{self.ip}:6095/request?{urlencode(params)}'
+
+    def with_opaque(self, pms, token=None):
+        '''
+        参考代码：https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/media_player.py
+        '''
+        if token is None:
+            token = '881fd5a8c94b4945b46527b07eca2431'
+        _hmac_key = '2840d5f0d078472dbc5fb78e39da123e'
+        pms.update({ 'timestamp': int(time.time() * 1000), 'token': token })
+        pms['opaque'] = hmac.new(_hmac_key.encode(), urlencode(pms).encode(), hashlib.sha1).hexdigest()
+        pms.pop('token', None)
+        return pms
 
     # 创建DLNA设备
     async def create_dlna_device(self):

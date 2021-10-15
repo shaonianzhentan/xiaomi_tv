@@ -3,9 +3,7 @@
     "name": "\u5C0F\u7C73\u7535\u89C6",
     "version": "1.0.0",
     "documentation": "https://github.com/shaonianzhentan/xiaomi_tv",
-    "requirements": [
-        "icmplib==3.0"
-    ],
+    "requirements": [],
     "codeowners": [
         "@shaonianzhentan"
     ],
