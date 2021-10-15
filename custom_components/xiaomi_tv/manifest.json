@@ -7,5 +7,5 @@
     "codeowners": [
         "@shaonianzhentan"
     ],
-    "iot_class": "assumed_state"
+    "iot_class": "local_polling"
 }
