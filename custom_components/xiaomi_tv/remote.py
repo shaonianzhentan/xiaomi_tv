@@ -128,7 +128,7 @@ class XiaomiRemote(RemoteEntity):
     async def send_keystrokes(self, keystrokes):
         try:
             for keystroke in keystrokes:
-                wait = 1
+                wait = 1.5
                 if '-' in keystroke:
                     arr = keystroke.split('-')
                     keystroke = arr[0]
