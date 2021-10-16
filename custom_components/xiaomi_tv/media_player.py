@@ -175,16 +175,19 @@ class XiaomiTV(MediaPlayerEntity):
             self._state = STATE_PLAYING
             dlna = self.dlna_device
             if dlna is not None:
-                if dlna.transport_state in (
-                    TransportState.PLAYING,
-                    TransportState.TRANSITIONING,
-                ):
-                    self._state = STATE_PLAYING
-                elif dlna.transport_state in (
-                    TransportState.PAUSED_PLAYBACK,
-                    TransportState.PAUSED_RECORDING,
-                ):
-                    self._state = STATE_PAUSED
+                try:
+                    if dlna.transport_state in (
+                        TransportState.PLAYING,
+                        TransportState.TRANSITIONING,
+                    ):
+                        self._state = STATE_PLAYING
+                    elif dlna.transport_state in (
+                        TransportState.PAUSED_PLAYBACK,
+                        TransportState.PAUSED_RECORDING,
+                    ):
+                        self._state = STATE_PAUSED
+                except Exception:
+                    await self.create_dlna_device()
                 # 重新连接DLNA服务
                 if self.is_alive == False:
                     await self.create_dlna_device()
