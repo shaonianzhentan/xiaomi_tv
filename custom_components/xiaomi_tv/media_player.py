@@ -93,6 +93,8 @@ class XiaomiTV(MediaPlayerEntity):
             }
         # mitv ethernet Mac address
         self._attributes = {}
+        # 失败计数器
+        self.fail_count = 0
 
     @property
     def name(self):
@@ -157,20 +159,17 @@ class XiaomiTV(MediaPlayerEntity):
     # 更新属性
     async def async_update(self):
         # 检测当前IP是否在线
-        is_alive = False
         sk = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         sk.settimeout(1)
         try:
             sk.connect((self.ip, 6095))
-            # print("server port connect OK! ")
-            is_alive = True
+            self.fail_count = 0
         except Exception:
-            # print("server port not connect!")
-            is_alive = False
+            self.fail_count = self.fail_count + 1
         sk.close()
 
         _len = len(self.app_list)
-        if is_alive:
+        if self.fail_count == 0:
             # 如果配置了dlna，则判断dlna设备的状态
             self._state = STATE_PLAYING
             dlna = self.dlna_device
@@ -198,12 +197,14 @@ class XiaomiTV(MediaPlayerEntity):
                     await self.create_dlna_device()
             # 获取截图
             await self.capturescreen()
-        else:
+            self.is_alive = True
+        elif self.fail_count >= 2:
+            self.fail_count = 2
+            self.is_alive = False
             self._state = STATE_OFF
             if _len > 0:
                 self.app_list = []
 
-        self.is_alive = is_alive
 
     # 选择应用
     async def async_select_source(self, source):
