@@ -45,12 +45,19 @@ event_data:
 - 确定：`enter`
 - 返回：`back`
 
-> 功能命令（需要配置脚本）
-- 小米电视历史记录：`xiaomi_history`
-- 小米电视搜索：`xiaomi_search`
-- 奇异果搜索：`iqiyi_search`
-- 酷喵搜索：`youku_search`
-- 腾讯视频搜索：`qqtv_search`
+发送按键
+```yaml
+service: remote.send_command
+data:
+  command: left
+```
+
+打开ADB（注意：必须先打开`开发者模式`）
+```yaml
+service: remote.send_command
+data:
+  command: adb
+```
 
 ## 更新日志
 

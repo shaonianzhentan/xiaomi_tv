@@ -62,6 +62,8 @@ class XiaomiRemote(RemoteEntity):
     async def async_send_command(self, command, **kwargs):
         """Send commands to a device."""
         device = kwargs.get('device', '')
+        # 延时
+        delay_secs = kwargs.get('delay_secs', 10)
         key = command[0]
         _LOGGER.debug(command)
         actionKeys = {
@@ -90,7 +92,7 @@ class XiaomiRemote(RemoteEntity):
             # 小米历史记录播放
             'xiaomi_history': ['home-2', 'down-2', 'enter-2', 'enter-3', 'enter'],
             # 小米电视搜索
-            'xiaomi_search': ['home-2', 'up-2', 'up-2', 'enter']
+            '小米电视搜索': ['home-2', 'up-2', 'up-2', 'enter']
         }
         # 搜索视频
         if device != '':
@@ -110,10 +112,22 @@ class XiaomiRemote(RemoteEntity):
 
         # 打开ADB
         if key == 'adb':
-            await keyevent(self.ip, 'home')
-            time.sleep(1)
-            await startapp(self.ip, 'com.xiaomi.mitv.settings')
-            time.sleep(1)
+            await self.startapp('com.xiaomi.mitv.settings')
+        # 奇异果搜索
+        if key == '奇异果搜索':
+            await self.startapp('com.gitvdemo.video')
+            time.sleep(delay_secs)
+            actionKeys.update({key: ['up-2', 'up-2', 'enter']})
+        # 奇异果搜索
+        if key == '酷喵搜索':
+            await self.startapp('com.cibn.tv')
+            time.sleep(delay_secs)
+            actionKeys.update({key: ['up-2', 'up-2', 'left-2', 'left-2', 'left-2', 'enter']})
+        # 奇异果搜索
+        if key == '腾讯视频搜索':
+            await self.startapp('com.ktcp.video')
+            time.sleep(delay_secs)
+            actionKeys.update({key: ['up-2', 'right-2', 'enter']})
 
         if key in actionKeys:
             await self.send_keystrokes(actionKeys[key])
@@ -123,6 +137,13 @@ class XiaomiRemote(RemoteEntity):
             state = hass.states.get(f'script.{script_id}')
             if state is not None:
                 await self.hass.services.async_call(state.domain, script_id)
+
+    # 打开应用
+    async def startapp(self, app_id):
+        await keyevent(self.ip, 'home')
+        time.sleep(1)
+        await startapp(self.ip, app_id)
+        time.sleep(1)
 
     # 获取执行命令
     async def send_keystrokes(self, keystrokes):
