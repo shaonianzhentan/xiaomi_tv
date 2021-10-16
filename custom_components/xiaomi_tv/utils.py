@@ -1,3 +1,26 @@
+import aiohttp, json
+
+# 获取执行命令
+async def mitv_api(ip, url):
+    try:
+        request_timeout = aiohttp.ClientTimeout(total=1)
+        async with aiohttp.ClientSession(timeout=request_timeout) as session:
+            async with session.get(f'http://{ip}:6095/{url}') as response:
+                data = json.loads(await response.text())
+                return data
+    except Exception as ex:
+        print(ex)
+    return None
+
+# 启动应用
+async def startapp(ip, packagename):
+    return await mitv_api(ip, f'controller?action=startapp&type=packagename&packagename={packagename}')
+
+# 发送按键
+async def keyevent(ip, keycode):
+    return await mitv_api(ip, f'controller?action=keyevent&keycode={keycode}')
+
+
 def single_get_first(unicode1):
     str1 = unicode1.encode('gbk')
     try:

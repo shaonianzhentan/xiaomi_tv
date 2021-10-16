@@ -29,7 +29,8 @@ from homeassistant.components.media_player.const import (
 from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON, STATE_PLAYING, STATE_PAUSED, STATE_IDLE, STATE_UNAVAILABLE
 import homeassistant.helpers.config_validation as cv
 
-from .const import DEFAULT_NAME, VERSION
+from .const import DEFAULT_NAME
+from .utils import keyevent, startapp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,7 +92,7 @@ class XiaomiTV(MediaPlayerEntity):
                 # '无线投屏': 'com.xiaomi.mitv.smartshare'
             }
         # mitv ethernet Mac address
-        self._attributes = { 'ver': VERSION }
+        self._attributes = {}
 
     @property
     def name(self):
@@ -199,6 +200,9 @@ class XiaomiTV(MediaPlayerEntity):
     # 选择应用
     async def async_select_source(self, source):
         if self.apps[source] is not None:
+            # 在选择应用时，先回到首页
+            await self.keyevent('home')
+            time.sleep(1)
             await self.execute('startapp&type=packagename&packagename=' + self.apps[source])
 
     # 选择数据源

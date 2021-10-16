@@ -14,7 +14,7 @@ from homeassistant.components.remote import (
 from homeassistant.const import CONF_HOST, CONF_NAME
 import homeassistant.helpers.config_validation as cv
 from .const import DOMAIN, DEFAULT_NAME
-from .utils import KeySearch
+from .utils import KeySearch, keyevent, startapp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -79,12 +79,8 @@ class XiaomiRemote(RemoteEntity):
             'volumeup': ['volumeup'],
             # 开启调试模式（最后两个键是弹窗确定，第一次需要）
             'adb': [
-                # 打开菜单
-                'home', 'menu',
-                # 打开设置
-                'right', 'right', 'right', 'enter', 
                 # 打开账号与安全
-                'right', 'right', 'right', 'enter', 
+                'right', 'right', 'right', 'enter',
                 # 选择ADB高度
                 'down', 'down', 'enter', 
                 # 选择开启
@@ -112,6 +108,13 @@ class XiaomiRemote(RemoteEntity):
         if ',' in key:
             actionKeys[key] = key.split(',')
 
+        # 打开ADB
+        if key == 'adb':
+            await keyevent(self.ip, 'home')
+            time.sleep(1)
+            await startapp(self.ip, 'com.xiaomi.mitv.settings')
+            time.sleep(1)
+
         if key in actionKeys:
             await self.send_keystrokes(actionKeys[key])
         else:
@@ -124,19 +127,14 @@ class XiaomiRemote(RemoteEntity):
     # 获取执行命令
     async def send_keystrokes(self, keystrokes):
         try:
-            tv_url = 'http://{}:6095/controller?action=keyevent&keycode='.format(self.ip)
-            request_timeout = aiohttp.ClientTimeout(total=1)
-            
             for keystroke in keystrokes:
                 wait = 1
                 if '-' in keystroke:
                     arr = keystroke.split('-')
                     keystroke = arr[0]
                     wait = float(arr[1])
-                async with aiohttp.ClientSession(timeout=request_timeout) as session:
-                    async with session.get(tv_url + keystroke) as response:
-                        if response.status != 200:
-                            return False
+                res = await keyevent(self.ip, keystroke)
+                # print(res)
                 # 如果是组合按键，则延时
                 if len(keystrokes) > 1:
                     time.sleep(wait)
