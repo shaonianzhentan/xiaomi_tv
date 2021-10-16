@@ -307,12 +307,13 @@ class XiaomiTV(MediaPlayerEntity):
         res = await self.execute('getsysteminfo')
         if res is not None:
             data = res['data']
-            self._attributes['deviceid'] = data['deviceid']
+            #self._attributes['deviceid'] = data['deviceid']
             # 可以根据设备名称判断类型，电视、盒子 
             devicename = data['devicename']
-            self._attributes['devicename'] = devicename
-            self._attributes['ethmac'] = data['ethmac']
-            self._attributes['wifimac'] = data['wifimac']
+            self._attr_media_title = devicename
+            #self._attributes['devicename'] = devicename
+            #self._attributes['ethmac'] = data['ethmac']
+            #self._attributes['wifimac'] = data['wifimac']
             # ['hdmi1', 'hdmi2', 'hdmi3', 'gallery', 'aux', 'tv', 'vga', 'av', 'dtmb']
             if '电视' in devicename:
                 self._sound_mode_list = ['hdmi1', 'hdmi2', 'hdmi3', 'gallery', 'aux', 'tv', 'vga', 'av', 'dtmb']
@@ -338,10 +339,13 @@ class XiaomiTV(MediaPlayerEntity):
         res = await self.http(f'controller?{urlencode(params)}')
         if res is not None:
             rdt = res['data']
+            # print(rdt)
             # 获取图片
             token = rdt.get('token')
             params = self.with_opaque({'action': 'getResource', 'name': 'screenCapture'}, token)
             self._attr_media_image_url = f'http://{self.ip}:6095/request?{urlencode(params)}'
+            self._attr_app_id = rdt.get('pkg')
+            self._attr_app_name = rdt.get('label')
 
     def with_opaque(self, pms, token=None):
         '''
@@ -359,7 +363,9 @@ class XiaomiTV(MediaPlayerEntity):
     async def create_dlna_device(self):
         requester = AiohttpRequester()
         factory = UpnpFactory(requester)
-        device = await factory.async_create_device(f"http://{self.ip}:49152/description.xml")
+        url = f"http://{self.ip}:49152/description.xml"
+        # print(url)
+        device = await factory.async_create_device(url)
 
         def event_handler(**args):
             print(args)
@@ -376,6 +382,7 @@ class XiaomiTV(MediaPlayerEntity):
         # perform GetVolume action
         get_volume = service.action("GetVolume")
         result = await get_volume.async_call(InstanceID=0, Channel="Master")
+        # print(result)
         self._volume_level = result['CurrentVolume'] / 100
 
     ''' 有时间再研究
