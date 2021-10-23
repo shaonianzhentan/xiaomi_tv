@@ -440,12 +440,9 @@ class XiaomiTV(MediaPlayerEntity):
             device1 = AdbDeviceTcp(self.ip, 5555, default_transport_timeout_s=9.)
             device1.connect(rsa_keys=[signer], auth_timeout_s=0.1)
             self.adb = device1
-            # 读取音量
-            data = self.adb.shell('dumpsys audio')
-            data = data[data.index('STREAM_MUSIC'):data.index('STREAM_ALARM')]
-            matchResult = re.findall("\(speaker\): (\d+)", data, re.DOTALL)
-            if len(matchResult) > 0:
-                self._volume_level = round(int(matchResult[0]) / 15, 1)
+            # 读取音量            
+            volume_music_speaker = self.adb.shell('settings get system volume_music_speaker')
+            self._volume_level = round(int(volume_music_speaker) / 15, 1)
 
             if self.hass.services.has_service(DOMAIN, SERVICE_ADB_COMMAND) == False:
                 self.hass.services.async_register(DOMAIN, SERVICE_ADB_COMMAND, self.service_adb_command)
