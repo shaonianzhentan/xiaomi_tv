@@ -30,7 +30,7 @@ from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON, STATE
 import homeassistant.helpers.config_validation as cv
 
 from .const import DEFAULT_NAME
-from .utils import keyevent, startapp
+from .utils import keyevent, startapp, check_port
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -159,14 +159,10 @@ class XiaomiTV(MediaPlayerEntity):
     # 更新属性
     async def async_update(self):
         # 检测当前IP是否在线
-        sk = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        sk.settimeout(1)
-        try:
-            sk.connect((self.ip, 6095))
+        if check_port(self.ip, 6095):
             self.fail_count = 0
-        except Exception:
+        else:
             self.fail_count = self.fail_count + 1
-        sk.close()
 
         _len = len(self.app_list)
         if self.fail_count == 0:
@@ -374,6 +370,9 @@ class XiaomiTV(MediaPlayerEntity):
 
     # 创建DLNA设备
     async def create_dlna_device(self):
+        if check_port(self.ip, 49152) == False:
+            self.dlna_device = None
+            return
         requester = AiohttpRequester()
         factory = UpnpFactory(requester)
         url = f"http://{self.ip}:49152/description.xml"
