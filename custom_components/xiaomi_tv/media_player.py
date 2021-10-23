@@ -10,7 +10,7 @@ from async_upnp_client import UpnpFactory, UpnpError
 from async_upnp_client.aiohttp import AiohttpRequester
 from async_upnp_client.profiles.dlna import DmrDevice, TransportState
 
-
+from homeassistant.helpers.storage import STORAGE_DIR
 from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerEntity
 from homeassistant.components.media_player.const import (
     SUPPORT_TURN_OFF,
@@ -26,10 +26,20 @@ from homeassistant.components.media_player.const import (
     SUPPORT_NEXT_TRACK,
     SUPPORT_PREVIOUS_TRACK
 )
-from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON, STATE_PLAYING, STATE_PAUSED, STATE_IDLE, STATE_UNAVAILABLE
+from homeassistant.const import (
+    CONF_HOST, 
+    CONF_NAME, 
+    STATE_OFF, 
+    STATE_ON, 
+    STATE_PLAYING, 
+    STATE_PAUSED, 
+    STATE_IDLE, 
+    STATE_UNAVAILABLE,
+    ATTR_ENTITY_ID
+)
 import homeassistant.helpers.config_validation as cv
 
-from .const import DEFAULT_NAME
+from .const import DEFAULT_NAME, DOMAIN, SERVICE_ADB_COMMAND
 from .utils import keyevent, startapp, check_port
 
 _LOGGER = logging.getLogger(__name__)
@@ -191,6 +201,8 @@ class XiaomiTV(MediaPlayerEntity):
                 if res is not None:
                     await self.get_apps()
                     await self.create_dlna_device()
+            # 创建ADB服务
+            self.create_adb_service()
             # 获取截图
             await self.capturescreen()
             self.is_alive = True
@@ -199,6 +211,7 @@ class XiaomiTV(MediaPlayerEntity):
             self.is_alive = False
             self._state = STATE_OFF
             self._attr_media_image_url = None
+            self.adb = None
             if _len > 0:
                 self.app_list = []
 
@@ -339,7 +352,7 @@ class XiaomiTV(MediaPlayerEntity):
                         data = json.loads(await response.text())
                         return data
         except Exception as ex:
-            _LOGGER.debug(ex)
+            _LOGGER.error(ex)
         return None
 
     # 截图方法
@@ -405,3 +418,33 @@ class XiaomiTV(MediaPlayerEntity):
             self.check_available = True
         print(service, state_variables)
     '''
+
+    # 创建ADB服务
+    async def create_adb_service(self):
+        if check_port(self.ip, 5555) == False:
+            return
+        try:
+            from adb_shell.adb_device import AdbDeviceTcp, AdbDeviceUsb
+            from adb_shell.auth.sign_pythonrsa import PythonRSASigner
+            # Load the public and private keys
+            adbkey = hass.config.path(STORAGE_DIR, "androidtv_adbkey")
+            with open(adbkey) as f:
+                priv = f.read()
+            with open(adbkey + '.pub') as f:
+                pub = f.read()
+            signer = PythonRSASigner(pub, priv)
+            # Connect
+            device1 = AdbDeviceTcp(self.ip, 5555, default_transport_timeout_s=9.)
+            device1.connect(rsa_keys=[signer], auth_timeout_s=0.1)
+            self.adb = device1
+            if hass.services.has_service(DOMAIN, SERVICE_ADB_COMMAND) == False:
+                hass.services.async_register(DOMAIN, SERVICE_ADB_COMMAND, self.service_adb_command)
+        except Exception as ex:
+            _LOGGER.error(ex)
+
+    async def service_adb_command(service):
+        cmd = service.data[ATTR_COMMAND]
+        entity_id = service.data[ATTR_ENTITY_ID]
+        if entity_id == self.entity_id:
+           res = self.adb.shell(cmd)
+           print(res)
