@@ -198,6 +198,7 @@ class XiaomiTV(MediaPlayerEntity):
             self.fail_count = 2
             self.is_alive = False
             self._state = STATE_OFF
+            self._attr_media_image_url = None
             if _len > 0:
                 self.app_list = []
 
