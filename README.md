@@ -52,17 +52,48 @@ data:
   command: left
 ```
 
+## ADB服务
+
 打开ADB（注意：必须先打开`开发者模式`）
 ```yaml
 service: remote.send_command
 data:
   command: adb
 ```
+腾讯视频搜索
+```yaml
+service: xiaomi_tv.adb_command
+data:
+  command: am start -a com.tencent.qqlivetv.open -d "tenvideo2://?action=9&search_key=扫黑风暴"
+  entity_id: media_player.xiao_mi_dian_shi
+```
+腾讯视频播放
+```yaml
+service: xiaomi_tv.adb_command
+data:
+  command: am start -a com.tencent.qqlivetv.open -d "tenvideo2://?action=7&cover_id=mzc00200lxzhhqz"
+  entity_id: media_player.xiao_mi_dian_shi
+```
+酷瞄搜索
+```yaml
+service: xiaomi_tv.adb_command
+data:
+  command: am start -a android.intent.action.VIEW -d "ykott://tv/search?url=tv/v3/search?from_app=cn.cibntv.ott"
+  entity_id: media_player.xiao_mi_dian_shi
+```
+酷瞄视频播放
+```yaml
+service: xiaomi_tv.adb_command
+data:
+  command: am start -a android.intent.action.VIEW -d "ykott://tv/detail?url=tv/v3/show/detail?id=175957&fullscreen=true&fullback=true&from=cn.cibntv.ott"
+  entity_id: media_player.xiao_mi_dian_shi
+```
 
 ## 更新日志
 
 ### v1.2
 - 集成ADB服务
+- 初始读取当前电视音量
 - [ ] 视频搜索
 - [ ] 视频播放
 
@@ -74,6 +105,7 @@ data:
 - 删除没用的参数
 - 修复打开应用有时不成功的问题
 - 修复无法打开ADB操作的命令
+
 ### v1.0
 - 基本功能完成
 

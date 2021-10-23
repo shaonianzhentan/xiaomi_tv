@@ -61,11 +61,7 @@ class XiaomiRemote(RemoteEntity):
          
     async def async_send_command(self, command, **kwargs):
         """Send commands to a device."""
-        device = kwargs.get('device', '')
-        # 延时
-        delay_secs = kwargs.get('delay_secs', 10)
         key = command[0]
-        _LOGGER.debug(command)
         actionKeys = {
             'sleep': ['power', 'right', 'right', 'enter'],
             'power': ['power'],
@@ -88,24 +84,8 @@ class XiaomiRemote(RemoteEntity):
                 # 选择开启
                 'up', 'enter', 
                 # 二次确定
-                'down', 'left', 'enter'],
-            # 小米历史记录播放
-            'xiaomi_history': ['home-2', 'down-2', 'enter-2', 'enter-3', 'enter'],
-            # 小米电视搜索
-            '小米电视搜索': ['home-2', 'up-2', 'up-2', 'enter']
+                'down', 'left', 'enter']
         }
-        # 搜索视频
-        if device != '':
-            arr = device.split('-')
-            if len(arr) == 3 and arr[0] == 'search':
-                # 'xiaomi_search': 'o',
-                # 'youku_search': 'p',
-                # 'iqiyi_search': 'o',
-                # 'qqtv_search': 'o'
-                type = str(arr[1])
-                lastChar = arr[2]
-                ks = KeySearch(lastChar, type)
-                actionKeys[key] = ks.getKeys(key)
         # 连续按键
         if ',' in key:
             actionKeys[key] = key.split(',')
@@ -113,30 +93,10 @@ class XiaomiRemote(RemoteEntity):
         # 打开ADB
         if key == 'adb':
             await self.startapp('com.xiaomi.mitv.settings')
-        # 奇异果搜索
-        if key == '奇异果搜索':
-            await self.startapp('com.gitvdemo.video')
-            time.sleep(delay_secs)
-            actionKeys.update({key: ['up-2', 'up-2', 'enter']})
-        # 奇异果搜索
-        if key == '酷喵搜索':
-            await self.startapp('com.cibn.tv')
-            time.sleep(delay_secs)
-            actionKeys.update({key: ['up-2', 'up-2', 'left-2', 'left-2', 'left-2', 'enter']})
-        # 奇异果搜索
-        if key == '腾讯视频搜索':
-            await self.startapp('com.ktcp.video')
-            time.sleep(delay_secs)
-            actionKeys.update({key: ['up-2', 'right-2', 'enter']})
+            time.sleep(1)
 
         if key in actionKeys:
             await self.send_keystrokes(actionKeys[key])
-        else:
-            hass = self.hass
-            script_id = 'xiaomi_tv_remote_' + key
-            state = hass.states.get(f'script.{script_id}')
-            if state is not None:
-                await self.hass.services.async_call(state.domain, script_id)
 
     # 打开应用
     async def startapp(self, app_id):

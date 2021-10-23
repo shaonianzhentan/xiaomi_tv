@@ -1,7 +1,6 @@
 """Add support for the Xiaomi TVs."""
 import logging
-from types import resolve_bases
-import aiohttp, json, time, hmac, socket, hashlib
+import aiohttp, json, time, hmac, socket, hashlib, os, re, datetime
 from urllib.parse import urlencode, urlparse, parse_qsl
 
 import voluptuous as vol
@@ -35,7 +34,8 @@ from homeassistant.const import (
     STATE_PAUSED, 
     STATE_IDLE, 
     STATE_UNAVAILABLE,
-    ATTR_ENTITY_ID
+    ATTR_ENTITY_ID,
+    ATTR_COMMAND
 )
 import homeassistant.helpers.config_validation as cv
 
@@ -79,6 +79,9 @@ class XiaomiTV(MediaPlayerEntity):
         self._source_list = []
         self._sound_mode_list = []
         self.dlna_device = None
+        self.adb = None
+        # 更新时间
+        self.update_at = datetime.datetime.now()
         # 已知应用列表
         self.app_list = []
         self.apps = {
@@ -202,7 +205,11 @@ class XiaomiTV(MediaPlayerEntity):
                     await self.get_apps()
                     await self.create_dlna_device()
             # 创建ADB服务
-            self.create_adb_service()
+            await self.create_adb_service()
+
+            if (datetime.datetime.now() - self.update_at).seconds > 20:
+                self.update_at = datetime.datetime.now()
+
             # 获取截图
             await self.capturescreen()
             self.is_alive = True
@@ -402,15 +409,6 @@ class XiaomiTV(MediaPlayerEntity):
         # self.dlna_device.on_event = self._on_event
         # await self.dlna_device.async_subscribe_services(auto_resubscribe=True)
 
-        # 获取音量
-        # get RenderingControle-service
-        service = device.service("urn:schemas-upnp-org:service:RenderingControl:1")
-        # perform GetVolume action
-        get_volume = service.action("GetVolume")
-        result = await get_volume.async_call(InstanceID=0, Channel="Master")
-        # print(result)
-        self._volume_level = result['CurrentVolume'] / 100
-
     ''' 有时间再研究
     def _on_event(self, service, state_variables):
         if not state_variables:
@@ -424,10 +422,15 @@ class XiaomiTV(MediaPlayerEntity):
         if check_port(self.ip, 5555) == False:
             return
         try:
+            if self.adb is not None and self.adb._available == True:
+                return
+            from adb_shell.auth.keygen import keygen
             from adb_shell.adb_device import AdbDeviceTcp, AdbDeviceUsb
             from adb_shell.auth.sign_pythonrsa import PythonRSASigner
             # Load the public and private keys
-            adbkey = hass.config.path(STORAGE_DIR, "androidtv_adbkey")
+            adbkey = self.hass.config.path(STORAGE_DIR, "androidtv_adbkey")
+            if not os.path.isfile(adbkey):
+                keygen(adbkey)
             with open(adbkey) as f:
                 priv = f.read()
             with open(adbkey + '.pub') as f:
@@ -437,14 +440,25 @@ class XiaomiTV(MediaPlayerEntity):
             device1 = AdbDeviceTcp(self.ip, 5555, default_transport_timeout_s=9.)
             device1.connect(rsa_keys=[signer], auth_timeout_s=0.1)
             self.adb = device1
-            if hass.services.has_service(DOMAIN, SERVICE_ADB_COMMAND) == False:
-                hass.services.async_register(DOMAIN, SERVICE_ADB_COMMAND, self.service_adb_command)
-        except Exception as ex:
-            _LOGGER.error(ex)
+            # 读取音量
+            data = self.adb.shell('dumpsys audio')
+            data = data[data.index('STREAM_MUSIC'):data.index('STREAM_ALARM')]
+            matchResult = re.findall("\(speaker\): (\d+)", data, re.DOTALL)
+            if len(matchResult) > 0:
+                self._volume_level = round(int(matchResult[0]) / 15, 1)
 
-    async def service_adb_command(service):
+            if self.hass.services.has_service(DOMAIN, SERVICE_ADB_COMMAND) == False:
+                self.hass.services.async_register(DOMAIN, SERVICE_ADB_COMMAND, self.service_adb_command)
+        except Exception as ex:
+            self.adb = None
+            print(ex)
+            
+    async def service_adb_command(self, service):
         cmd = service.data[ATTR_COMMAND]
         entity_id = service.data[ATTR_ENTITY_ID]
         if entity_id == self.entity_id:
-           res = self.adb.shell(cmd)
-           print(res)
+            try:
+                res = self.adb.shell(cmd)
+                print(res)
+            except Exception as ex:
+                self.adb = None
