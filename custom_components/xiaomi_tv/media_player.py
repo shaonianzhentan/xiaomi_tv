@@ -81,7 +81,7 @@ class XiaomiTV(MediaPlayerEntity):
         self.dlna_device = None
         self.adb = None
         # 更新时间
-        self.update_at = datetime.datetime.now()
+        self.update_at = None
         # 已知应用列表
         self.app_list = []
         self.apps = {
@@ -194,21 +194,18 @@ class XiaomiTV(MediaPlayerEntity):
                         TransportState.PAUSED_RECORDING,
                     ):
                         self._state = STATE_PAUSED
-                except Exception:
-                    await self.create_dlna_device()
-                # 重新连接DLNA服务
-                if self.is_alive == False:
-                    await self.create_dlna_device()
+                except Exception as ex:
+                    _LOGGER.error(ex)
             if _len == 0:
-                res = await self.getsysteminfo()
-                if res is not None:
-                    await self.get_apps()
-                    await self.create_dlna_device()
-            # 创建ADB服务
-            await self.create_adb_service()
+                await self.getsysteminfo()
+                await self.get_apps()
 
-            if (datetime.datetime.now() - self.update_at).seconds > 20:
+            if self.update_at is None or (datetime.datetime.now() - self.update_at).seconds > 20:
                 self.update_at = datetime.datetime.now()
+                # 创建DLNA服务
+                await self.create_dlna_device()
+                # 创建ADB服务
+                await self.create_adb_service()
 
             # 获取截图
             await self.capturescreen()
@@ -219,6 +216,7 @@ class XiaomiTV(MediaPlayerEntity):
             self._state = STATE_OFF
             self._attr_media_image_url = None
             self.adb = None
+            self.dlna_device = None
             if _len > 0:
                 self.app_list = []
 
@@ -392,7 +390,6 @@ class XiaomiTV(MediaPlayerEntity):
     # 创建DLNA设备
     async def create_dlna_device(self):
         if check_port(self.ip, 49152) == False:
-            self.dlna_device = None
             return
         requester = AiohttpRequester()
         factory = UpnpFactory(requester)
