@@ -8,8 +8,8 @@
                 "description": "",
                 "title": "小米电视配置",
                 "data": {
-                    "name": "小米电视",
-                    "host": "小米电视局域网IP地址"
+                    "name": "名称",
+                    "host": "IP地址"
                 }
             }
         }
