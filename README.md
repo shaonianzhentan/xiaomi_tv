@@ -11,15 +11,14 @@
 
 [![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_tv)
 
+HomeKit遥控器
 
-> 开机事件自动化监听(触发条件)
-```yaml
-platform: event
-event_type: xiaomi_tv
-event_data:  
-  type: 'on'
-  entity_id: '电视实体，用来区分多个电视，只有一个可以去掉此项'
-```
+[![导入蓝图](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fshaonianzhentan%2Fxiaomi_tv%2Fblob%2Fmain%2Fblueprints%2Fhomekit_tv_remote.yaml)
+
+开机/关闭电视事件
+
+[![导入蓝图](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fshaonianzhentan%2Fxiaomi_tv%2Fblob%2Fmain%2Fblueprints%2Fxiaomi_tv.yaml)
+
 
 > 遥控器按键命令
 - 关机：`power`
@@ -85,7 +84,8 @@ data:
 - 初始读取当前电视音量
 - 视频搜索
 - 视频播放
-- 只能集成安装
+- 支持集成安装
+- 支持蓝图安装
 
 ### v1.1
 - 集成DLNA服务
