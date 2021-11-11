@@ -1,27 +1,16 @@
 # xiaomi_tv
 
-小米电视
+小米电视官方组件增强版
 
-https://www.bilibili.com/read/cv12067446
+[![hacs_badge](https://img.shields.io/badge/Home-Assistant-%23049cdb)](https://www.home-assistant.io/)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-> HomeAssistant配置
-```yaml
-# 电视
-media_player:
-  - platform: xiaomi_tv
-    host: 192.168.0.105
+## 使用方式
 
-# 遥控器
-remote:
-  - platform: xiaomi_tv
-    host: 192.168.0.105
+安装完成重启HA，刷新一下页面，在集成里搜索`小米电视`即可
 
-# 日志
-logger:
-  default: info
-  logs:
-    custom_components.xiaomi_tv: debug
-```
+[![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_tv)
+
 
 > 开机事件自动化监听(触发条件)
 ```yaml
@@ -94,8 +83,9 @@ data:
 ### v1.2
 - 集成ADB服务
 - 初始读取当前电视音量
-- [ ] 视频搜索
-- [ ] 视频播放
+- 视频搜索
+- 视频播放
+- 只能集成安装
 
 ### v1.1
 - 集成DLNA服务

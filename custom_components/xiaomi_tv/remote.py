@@ -2,15 +2,15 @@ import aiohttp, time
 import logging
 import voluptuous as vol
 
-from homeassistant.components.media_player import PLATFORM_SCHEMA
-
 from homeassistant.components.remote import (
     ATTR_DELAY_SECS,
     ATTR_NUM_REPEATS,
     DEFAULT_DELAY_SECS,
     RemoteEntity,
 )
-
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME
 import homeassistant.helpers.config_validation as cv
 from .const import DOMAIN, DEFAULT_NAME
@@ -18,18 +18,14 @@ from .utils import KeySearch, keyevent, startapp
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Optional(CONF_HOST): cv.string,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    }
-)
-
-def setup_platform(hass, config, add_entities, discovery_info=None):
-
-    host = config.get(CONF_HOST)
-    name = config.get(CONF_NAME)
-    add_entities([XiaomiRemote(host, name, hass)])
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    host = entry.data.get(CONF_HOST)
+    name = entry.data.get(CONF_NAME)
+    async_add_entities([XiaomiRemote(host, name, hass)], True)
 
 class XiaomiRemote(RemoteEntity):
 
