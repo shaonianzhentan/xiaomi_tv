@@ -107,7 +107,6 @@ class XiaomiTV(MediaPlayerEntity):
 
     @property
     def name(self):
-        """Return the display name of this TV."""
         return self._name
 
     @property
@@ -160,6 +159,19 @@ class XiaomiTV(MediaPlayerEntity):
     @property
     def device_class(self):
         return 'tv'
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                (DOMAIN, self.unique_id)
+            },
+            "name": self.name,
+            "manufacturer": "Xiaomi",
+            "model": self.ip,
+            "sw_version": "1.2",
+            "via_device": (DOMAIN, self.ip),
+        }
 
     @property
     def extra_state_attributes(self):
