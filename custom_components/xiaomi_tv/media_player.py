@@ -42,7 +42,7 @@ from homeassistant.const import (
 )
 import homeassistant.helpers.config_validation as cv
 
-from .const import DEFAULT_NAME, DOMAIN, SERVICE_ADB_COMMAND
+from .const import DEFAULT_NAME, DOMAIN, SERVICE_ADB_COMMAND, VERSION
 from .utils import keyevent, startapp, check_port
 
 _LOGGER = logging.getLogger(__name__)
@@ -169,7 +169,7 @@ class XiaomiTV(MediaPlayerEntity):
             "name": self.name,
             "manufacturer": "Xiaomi",
             "model": self.ip,
-            "sw_version": "1.2",
+            "sw_version": VERSION,
             "via_device": (DOMAIN, self.ip),
         }
 
