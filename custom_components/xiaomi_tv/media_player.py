@@ -42,7 +42,7 @@ from homeassistant.const import (
 )
 import homeassistant.helpers.config_validation as cv
 
-from .const import DEFAULT_NAME, DOMAIN, SERVICE_ADB_COMMAND
+from .const import DEFAULT_NAME, DOMAIN, SERVICE_ADB_COMMAND, VERSION
 from .utils import keyevent, startapp, check_port
 
 _LOGGER = logging.getLogger(__name__)
@@ -107,7 +107,6 @@ class XiaomiTV(MediaPlayerEntity):
 
     @property
     def name(self):
-        """Return the display name of this TV."""
         return self._name
 
     @property
@@ -160,6 +159,19 @@ class XiaomiTV(MediaPlayerEntity):
     @property
     def device_class(self):
         return 'tv'
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                (DOMAIN, self.unique_id)
+            },
+            "name": self.name,
+            "manufacturer": "Xiaomi",
+            "model": self.ip,
+            "sw_version": VERSION,
+            "via_device": (DOMAIN, self.ip),
+        }
 
     @property
     def extra_state_attributes(self):

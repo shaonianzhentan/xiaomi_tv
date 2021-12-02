@@ -13,7 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME
 import homeassistant.helpers.config_validation as cv
-from .const import DOMAIN, DEFAULT_NAME
+from .const import DOMAIN, DEFAULT_NAME, VERSION
 from .utils import KeySearch, keyevent, startapp
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,6 +48,19 @@ class XiaomiRemote(RemoteEntity):
     @property
     def should_poll(self):
         return False
+    
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                (DOMAIN, self.unique_id)
+            },
+            "name": self.name,
+            "manufacturer": "Xiaomi",
+            "model": self.ip,
+            "sw_version": VERSION,
+            "via_device": (DOMAIN, self.ip),
+        }
 
     async def async_turn_on(self, activity: str = None, **kwargs):
          """Turn the remote on."""
