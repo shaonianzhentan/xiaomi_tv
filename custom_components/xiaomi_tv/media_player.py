@@ -1,7 +1,6 @@
 """Add support for the Xiaomi TVs."""
 import logging
-from types import resolve_bases
-import aiohttp, json, time, hmac, socket, hashlib
+import aiohttp, json, time, hmac, socket, hashlib, os, re, datetime
 from urllib.parse import urlencode, urlparse, parse_qsl
 
 import voluptuous as vol
@@ -10,8 +9,11 @@ from async_upnp_client import UpnpFactory, UpnpError
 from async_upnp_client.aiohttp import AiohttpRequester
 from async_upnp_client.profiles.dlna import DmrDevice, TransportState
 
-
-from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerEntity
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.storage import STORAGE_DIR
+from homeassistant.components.media_player import MediaPlayerEntity
 from homeassistant.components.media_player.const import (
     SUPPORT_TURN_OFF,
     SUPPORT_TURN_ON,
@@ -26,11 +28,22 @@ from homeassistant.components.media_player.const import (
     SUPPORT_NEXT_TRACK,
     SUPPORT_PREVIOUS_TRACK
 )
-from homeassistant.const import CONF_HOST, CONF_NAME, STATE_OFF, STATE_ON, STATE_PLAYING, STATE_PAUSED, STATE_IDLE, STATE_UNAVAILABLE
+from homeassistant.const import (
+    CONF_HOST, 
+    CONF_NAME, 
+    STATE_OFF, 
+    STATE_ON, 
+    STATE_PLAYING, 
+    STATE_PAUSED, 
+    STATE_IDLE, 
+    STATE_UNAVAILABLE,
+    ATTR_ENTITY_ID,
+    ATTR_COMMAND
+)
 import homeassistant.helpers.config_validation as cv
 
-from .const import DEFAULT_NAME
-from .utils import keyevent, startapp
+from .const import DEFAULT_NAME, DOMAIN, SERVICE_ADB_COMMAND, VERSION
+from .utils import keyevent, startapp, check_port
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,21 +51,14 @@ SUPPORT_XIAOMI_TV = SUPPORT_VOLUME_STEP | SUPPORT_VOLUME_MUTE | SUPPORT_VOLUME_S
     SUPPORT_TURN_ON | SUPPORT_TURN_OFF | SUPPORT_SELECT_SOURCE | SUPPORT_SELECT_SOUND_MODE | \
     SUPPORT_PLAY_MEDIA | SUPPORT_PLAY | SUPPORT_PAUSE | SUPPORT_PREVIOUS_TRACK | SUPPORT_NEXT_TRACK
 
-# No host is needed for configuration, however it can be set.
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Optional(CONF_HOST): cv.string,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    }
-)
-
-def setup_platform(hass, config, add_entities, discovery_info=None):
-    """Set up the Xiaomi TV platform."""
-
-    # If a hostname is set. Discovery is skipped.
-    host = config.get(CONF_HOST)
-    name = config.get(CONF_NAME)
-    add_entities([XiaomiTV(host, name, hass)])
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    host = entry.data.get(CONF_HOST)
+    name = entry.data.get(CONF_NAME)
+    async_add_entities([XiaomiTV(host, name, hass)], True)
 
 class XiaomiTV(MediaPlayerEntity):
     """Represent the Xiaomi TV for Home Assistant."""
@@ -69,6 +75,9 @@ class XiaomiTV(MediaPlayerEntity):
         self._source_list = []
         self._sound_mode_list = []
         self.dlna_device = None
+        self.adb = None
+        # 更新时间
+        self.update_at = None
         # 已知应用列表
         self.app_list = []
         self.apps = {
@@ -98,7 +107,6 @@ class XiaomiTV(MediaPlayerEntity):
 
     @property
     def name(self):
-        """Return the display name of this TV."""
         return self._name
 
     @property
@@ -153,20 +161,29 @@ class XiaomiTV(MediaPlayerEntity):
         return 'tv'
 
     @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                (DOMAIN, self.unique_id)
+            },
+            "name": self.name,
+            "manufacturer": "Xiaomi",
+            "model": self.ip,
+            "sw_version": VERSION,
+            "via_device": (DOMAIN, self.ip),
+        }
+
+    @property
     def extra_state_attributes(self):
         return self._attributes
 
     # 更新属性
     async def async_update(self):
         # 检测当前IP是否在线
-        sk = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        sk.settimeout(1)
-        try:
-            sk.connect((self.ip, 6095))
+        if check_port(self.ip, 6095):
             self.fail_count = 0
-        except Exception:
+        else:
             self.fail_count = self.fail_count + 1
-        sk.close()
 
         _len = len(self.app_list)
         if self.fail_count == 0:
@@ -185,16 +202,19 @@ class XiaomiTV(MediaPlayerEntity):
                         TransportState.PAUSED_RECORDING,
                     ):
                         self._state = STATE_PAUSED
-                except Exception:
-                    await self.create_dlna_device()
-                # 重新连接DLNA服务
-                if self.is_alive == False:
-                    await self.create_dlna_device()
+                except Exception as ex:
+                    _LOGGER.error(ex)
             if _len == 0:
-                res = await self.getsysteminfo()
-                if res is not None:
-                    await self.get_apps()
-                    await self.create_dlna_device()
+                await self.getsysteminfo()
+                await self.get_apps()
+
+            if self.update_at is None or (datetime.datetime.now() - self.update_at).seconds > 20:
+                self.update_at = datetime.datetime.now()
+                # 创建DLNA服务
+                await self.create_dlna_device()
+                # 创建ADB服务
+                await self.create_adb_service()
+
             # 获取截图
             await self.capturescreen()
             self.is_alive = True
@@ -202,6 +222,9 @@ class XiaomiTV(MediaPlayerEntity):
             self.fail_count = 2
             self.is_alive = False
             self._state = STATE_OFF
+            self._attr_media_image_url = None
+            self.adb = None
+            self.dlna_device = None
             if _len > 0:
                 self.app_list = []
 
@@ -342,7 +365,7 @@ class XiaomiTV(MediaPlayerEntity):
                         data = json.loads(await response.text())
                         return data
         except Exception as ex:
-            _LOGGER.debug(ex)
+            _LOGGER.error(ex)
         return None
 
     # 截图方法
@@ -374,6 +397,8 @@ class XiaomiTV(MediaPlayerEntity):
 
     # 创建DLNA设备
     async def create_dlna_device(self):
+        if check_port(self.ip, 49152) == False:
+            return
         requester = AiohttpRequester()
         factory = UpnpFactory(requester)
         url = f"http://{self.ip}:49152/description.xml"
@@ -389,15 +414,6 @@ class XiaomiTV(MediaPlayerEntity):
         # self.dlna_device.on_event = self._on_event
         # await self.dlna_device.async_subscribe_services(auto_resubscribe=True)
 
-        # 获取音量
-        # get RenderingControle-service
-        service = device.service("urn:schemas-upnp-org:service:RenderingControl:1")
-        # perform GetVolume action
-        get_volume = service.action("GetVolume")
-        result = await get_volume.async_call(InstanceID=0, Channel="Master")
-        # print(result)
-        self._volume_level = result['CurrentVolume'] / 100
-
     ''' 有时间再研究
     def _on_event(self, service, state_variables):
         if not state_variables:
@@ -405,3 +421,46 @@ class XiaomiTV(MediaPlayerEntity):
             self.check_available = True
         print(service, state_variables)
     '''
+
+    # 创建ADB服务
+    async def create_adb_service(self):
+        if check_port(self.ip, 5555) == False:
+            return
+        try:
+            if self.adb is not None and self.adb._available == True:
+                return
+            from adb_shell.auth.keygen import keygen
+            from adb_shell.adb_device import AdbDeviceTcp, AdbDeviceUsb
+            from adb_shell.auth.sign_pythonrsa import PythonRSASigner
+            # Load the public and private keys
+            adbkey = self.hass.config.path(STORAGE_DIR, "androidtv_adbkey")
+            if not os.path.isfile(adbkey):
+                keygen(adbkey)
+            with open(adbkey) as f:
+                priv = f.read()
+            with open(adbkey + '.pub') as f:
+                pub = f.read()
+            signer = PythonRSASigner(pub, priv)
+            # Connect
+            device1 = AdbDeviceTcp(self.ip, 5555, default_transport_timeout_s=9.)
+            device1.connect(rsa_keys=[signer], auth_timeout_s=0.1)
+            self.adb = device1
+            # 读取音量            
+            volume_music_speaker = self.adb.shell('settings get system volume_music_speaker')
+            self._volume_level = round(int(volume_music_speaker) / 15, 1)
+
+            if self.hass.services.has_service(DOMAIN, SERVICE_ADB_COMMAND) == False:
+                self.hass.services.async_register(DOMAIN, SERVICE_ADB_COMMAND, self.service_adb_command)
+        except Exception as ex:
+            self.adb = None
+            print(ex)
+            
+    async def service_adb_command(self, service):
+        cmd = service.data[ATTR_COMMAND]
+        entity_id = service.data[ATTR_ENTITY_ID]
+        if entity_id == self.entity_id:
+            try:
+                res = self.adb.shell(cmd)
+                print(res)
+            except Exception as ex:
+                self.adb = None

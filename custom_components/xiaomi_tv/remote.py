@@ -2,34 +2,30 @@ import aiohttp, time
 import logging
 import voluptuous as vol
 
-from homeassistant.components.media_player import PLATFORM_SCHEMA
-
 from homeassistant.components.remote import (
     ATTR_DELAY_SECS,
     ATTR_NUM_REPEATS,
     DEFAULT_DELAY_SECS,
     RemoteEntity,
 )
-
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME
 import homeassistant.helpers.config_validation as cv
-from .const import DOMAIN, DEFAULT_NAME
+from .const import DOMAIN, DEFAULT_NAME, VERSION
 from .utils import KeySearch, keyevent, startapp
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Optional(CONF_HOST): cv.string,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    }
-)
-
-def setup_platform(hass, config, add_entities, discovery_info=None):
-
-    host = config.get(CONF_HOST)
-    name = config.get(CONF_NAME)
-    add_entities([XiaomiRemote(host, name, hass)])
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    host = entry.data.get(CONF_HOST)
+    name = entry.data.get(CONF_NAME)
+    async_add_entities([XiaomiRemote(host, name, hass)], True)
 
 class XiaomiRemote(RemoteEntity):
 
@@ -52,6 +48,19 @@ class XiaomiRemote(RemoteEntity):
     @property
     def should_poll(self):
         return False
+    
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                (DOMAIN, self.unique_id)
+            },
+            "name": self.name,
+            "manufacturer": "Xiaomi",
+            "model": self.ip,
+            "sw_version": VERSION,
+            "via_device": (DOMAIN, self.ip),
+        }
 
     async def async_turn_on(self, activity: str = None, **kwargs):
          """Turn the remote on."""
@@ -61,11 +70,7 @@ class XiaomiRemote(RemoteEntity):
          
     async def async_send_command(self, command, **kwargs):
         """Send commands to a device."""
-        device = kwargs.get('device', '')
-        # 延时
-        delay_secs = kwargs.get('delay_secs', 10)
         key = command[0]
-        _LOGGER.debug(command)
         actionKeys = {
             'sleep': ['power', 'right', 'right', 'enter'],
             'power': ['power'],
@@ -88,24 +93,8 @@ class XiaomiRemote(RemoteEntity):
                 # 选择开启
                 'up', 'enter', 
                 # 二次确定
-                'down', 'left', 'enter'],
-            # 小米历史记录播放
-            'xiaomi_history': ['home-2', 'down-2', 'enter-2', 'enter-3', 'enter'],
-            # 小米电视搜索
-            '小米电视搜索': ['home-2', 'up-2', 'up-2', 'enter']
+                'down', 'left', 'enter']
         }
-        # 搜索视频
-        if device != '':
-            arr = device.split('-')
-            if len(arr) == 3 and arr[0] == 'search':
-                # 'xiaomi_search': 'o',
-                # 'youku_search': 'p',
-                # 'iqiyi_search': 'o',
-                # 'qqtv_search': 'o'
-                type = str(arr[1])
-                lastChar = arr[2]
-                ks = KeySearch(lastChar, type)
-                actionKeys[key] = ks.getKeys(key)
         # 连续按键
         if ',' in key:
             actionKeys[key] = key.split(',')
@@ -113,30 +102,10 @@ class XiaomiRemote(RemoteEntity):
         # 打开ADB
         if key == 'adb':
             await self.startapp('com.xiaomi.mitv.settings')
-        # 奇异果搜索
-        if key == '奇异果搜索':
-            await self.startapp('com.gitvdemo.video')
-            time.sleep(delay_secs)
-            actionKeys.update({key: ['up-2', 'up-2', 'enter']})
-        # 奇异果搜索
-        if key == '酷喵搜索':
-            await self.startapp('com.cibn.tv')
-            time.sleep(delay_secs)
-            actionKeys.update({key: ['up-2', 'up-2', 'left-2', 'left-2', 'left-2', 'enter']})
-        # 奇异果搜索
-        if key == '腾讯视频搜索':
-            await self.startapp('com.ktcp.video')
-            time.sleep(delay_secs)
-            actionKeys.update({key: ['up-2', 'right-2', 'enter']})
+            time.sleep(1)
 
         if key in actionKeys:
             await self.send_keystrokes(actionKeys[key])
-        else:
-            hass = self.hass
-            script_id = 'xiaomi_tv_remote_' + key
-            state = hass.states.get(f'script.{script_id}')
-            if state is not None:
-                await self.hass.services.async_call(state.domain, script_id)
 
     # 打开应用
     async def startapp(self, app_id):

@@ -1,0 +1,18 @@
+adb_command:
+  name: ADB 命令
+  description: 发送命令到小米电视
+  fields:
+    entity_id:
+      description: 小米电视实体
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_tv
+          domain: media_player
+    command:
+      name: adb shell命令
+      description: 示例是返回命令
+      required: true
+      example: "input keyevent 4"
+      selector:
+        text:

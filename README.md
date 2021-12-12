@@ -11,33 +11,20 @@
 ![stars](https://img.shields.io/github/stars/shaonianzhentan/xiaomi_tv)
 
 
-> HomeAssistant配置
-```yaml
-# 电视
-media_player:
-  - platform: xiaomi_tv
-    host: 192.168.0.105
+## 使用方式
 
-# 遥控器
-remote:
-  - platform: xiaomi_tv
-    host: 192.168.0.105
+安装完成重启HA，刷新一下页面，在集成里搜索`小米电视`即可
 
-# 日志
-logger:
-  default: info
-  logs:
-    custom_components.xiaomi_tv: debug
-```
+[![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=xiaomi_tv)
 
-> 开机事件自动化监听(触发条件)
-```yaml
-platform: event
-event_type: xiaomi_tv
-event_data:  
-  type: 'on'
-  entity_id: '电视实体，用来区分多个电视，只有一个可以去掉此项'
-```
+HomeKit遥控器
+
+[![导入蓝图](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fshaonianzhentan%2Fxiaomi_tv%2Fblob%2Fmain%2Fblueprints%2Fhomekit_tv_remote.yaml)
+
+开机/关闭电视事件
+
+[![导入蓝图](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fshaonianzhentan%2Fxiaomi_tv%2Fblob%2Fmain%2Fblueprints%2Fxiaomi_tv.yaml)
+
 
 > 遥控器按键命令
 - 关机：`power`
@@ -59,14 +46,52 @@ data:
   command: left
 ```
 
+## ADB服务
+
 打开ADB（注意：必须先打开`开发者模式`）
 ```yaml
 service: remote.send_command
 data:
   command: adb
 ```
+腾讯视频搜索
+```yaml
+service: xiaomi_tv.adb_command
+data:
+  command: am start -a com.tencent.qqlivetv.open -d "tenvideo2://?action=9&search_key=扫黑风暴"
+  entity_id: media_player.xiao_mi_dian_shi
+```
+腾讯视频播放
+```yaml
+service: xiaomi_tv.adb_command
+data:
+  command: am start -a com.tencent.qqlivetv.open -d "tenvideo2://?action=7&cover_id=mzc00200lxzhhqz"
+  entity_id: media_player.xiao_mi_dian_shi
+```
+酷瞄搜索
+```yaml
+service: xiaomi_tv.adb_command
+data:
+  command: am start -a android.intent.action.VIEW -d "ykott://tv/search?url=tv/v3/search?from_app=cn.cibntv.ott"
+  entity_id: media_player.xiao_mi_dian_shi
+```
+酷瞄视频播放
+```yaml
+service: xiaomi_tv.adb_command
+data:
+  command: am start -a android.intent.action.VIEW -d "ykott://tv/detail?url=tv/v3/show/detail?id=175957&fullscreen=true&fullback=true&from=cn.cibntv.ott"
+  entity_id: media_player.xiao_mi_dian_shi
+```
 
 ## 更新日志
+
+### v1.2
+- 集成ADB服务
+- 初始读取当前电视音量
+- 视频搜索
+- 视频播放
+- 支持集成安装
+- 支持蓝图安装
 
 ### v1.1
 - 集成DLNA服务
@@ -76,6 +101,7 @@ data:
 - 删除没用的参数
 - 修复打开应用有时不成功的问题
 - 修复无法打开ADB操作的命令
+
 ### v1.0
 - 基本功能完成
 
