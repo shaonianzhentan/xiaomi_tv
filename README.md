@@ -1,8 +1,15 @@
-# xiaomi_tv
+# 小米电视
 
-小米电视
+视频介绍：https://www.bilibili.com/read/cv12067446
 
-https://www.bilibili.com/read/cv12067446
+[![hacs_badge](https://img.shields.io/badge/Home-Assistant-%23049cdb)](https://www.home-assistant.io/)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+
+
+![visit](https://visitor-badge.glitch.me/badge?page_id=shaonianzhentan.xiaomi_tv&left_text=visit)
+![forks](https://img.shields.io/github/forks/shaonianzhentan/xiaomi_tv)
+![stars](https://img.shields.io/github/stars/shaonianzhentan/xiaomi_tv)
+
 
 > HomeAssistant配置
 ```yaml
@@ -76,3 +83,7 @@ data:
 |支付宝|微信|
 |---|---|
 <img src="https://github.com/shaonianzhentan/ha-docs/raw/master/docs/img/alipay.png" align="left" height="160" width="160" alt="支付宝" title="支付宝">  |  <img src="https://github.com/shaonianzhentan/ha-docs/raw/master/docs/img/wechat.png" align="left" height="160" width="160" alt="微信支付" title="微信">
+
+
+#### 关注我的微信订阅号，了解更多HomeAssistant相关知识
+<img src="https://github.com/shaonianzhentan/ha-docs/raw/master/docs/img/wechat-channel.png" align="left" height="160" alt="HomeAssistant家庭助理" title="HomeAssistant家庭助理"> 
