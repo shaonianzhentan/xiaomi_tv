@@ -271,8 +271,8 @@ class XiaomiTV(MediaPlayerEntity):
         self._volume_level = volume
         dlna = self.dlna_device
         if dlna is not None:
-            # 兼容小米电视音量控制
-            if volume <= 0.15:
+            # 兼容小米盒子音量控制
+            if volume <= 0.15 and '盒子' in self._attr_media_title:
                 arr = [0, 0.05, 0.1, 0.2, 0.25, 0.3, 0.4, 0.45, 0.5, 0.6, 0.65, 0.7, 0.75, 0.85, 0.9, 1]
                 volume = arr[int(volume * 100)]
             # 调整音量
