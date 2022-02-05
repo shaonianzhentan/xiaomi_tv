@@ -272,12 +272,14 @@ class XiaomiTV(MediaPlayerEntity):
         dlna = self.dlna_device
         if dlna is not None:
             # 小米盒子音量最大值15，当音量小于15时，则实际值设置
-            if volume <= 0.15 and '盒子' in self._attr_media_title:
-                arr = [0, 0.05, 0.1, 0.2, 0.25, 0.3, 0.4, 0.45, 0.5, 0.6, 0.65, 0.7, 0.75, 0.85, 0.9, 1]
-                volume = arr[int(volume * 100)]
+            if '盒子' in self._attr_media_title:
+                if volume <= 0.15:
+                    arr = [0, 0.05, 0.1, 0.2, 0.25, 0.3, 0.4, 0.45, 0.5, 0.6, 0.65, 0.7, 0.75, 0.85, 0.9, 1]
+                    volume = arr[int(volume * 100)]
             # 小米电视音量最大值50，当音量小于20时，则实际值设置
-            if volume <= 0.2 and '电视' in self._attr_media_title:
-                volume = round(volume / 2.0, 2)
+            elif '电视' in self._attr_media_title:
+                if volume <= 0.2:
+                    volume = round(volume / 2.0, 2)
             # 调整音量
             await dlna.async_set_volume_level(volume)
 
