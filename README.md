@@ -68,14 +68,14 @@ data:
   command: am start -a com.tencent.qqlivetv.open -d "tenvideo2://?action=7&cover_id=mzc00200lxzhhqz"
   entity_id: media_player.xiao_mi_dian_shi
 ```
-酷瞄搜索
+酷喵搜索
 ```yaml
 service: xiaomi_tv.adb_command
 data:
   command: am start -a android.intent.action.VIEW -d "ykott://tv/search?url=tv/v3/search?from_app=cn.cibntv.ott"
   entity_id: media_player.xiao_mi_dian_shi
 ```
-酷瞄视频播放
+酷喵视频播放
 ```yaml
 service: xiaomi_tv.adb_command
 data:
@@ -84,6 +84,9 @@ data:
 ```
 
 ## 更新日志
+
+### v1.2.1
+- 支持电视调节音量
 
 ### v1.2
 - 集成ADB服务
