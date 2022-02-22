@@ -404,17 +404,19 @@ class XiaomiTV(MediaPlayerEntity):
     async def create_dlna_device(self):
         if check_port(self.ip, 49152) == False:
             return
-        requester = AiohttpRequester()
-        factory = UpnpFactory(requester)
-        url = f"http://{self.ip}:49152/description.xml"
-        # print(url)
-        device = await factory.async_create_device(url)
+        try:
+            requester = AiohttpRequester()
+            factory = UpnpFactory(requester)
+            url = f"http://{self.ip}:49152/description.xml"
+            # print(url)
+            device = await factory.async_create_device(url)
 
-        def event_handler(**args):
-            print(args)
+            def event_handler(**args):
+                print(args)
 
-        self.dlna_device = DmrDevice(device, event_handler)
-
+            self.dlna_device = DmrDevice(device, event_handler)
+        except Exception as ex:
+            print(ex)
         # 订阅事件通知
         # self.dlna_device.on_event = self._on_event
         # await self.dlna_device.async_subscribe_services(auto_resubscribe=True)
