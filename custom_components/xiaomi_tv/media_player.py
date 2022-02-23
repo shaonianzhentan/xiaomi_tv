@@ -15,6 +15,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.storage import STORAGE_DIR
 from homeassistant.components.media_player import MediaPlayerEntity
 from homeassistant.components.media_player.const import (
+    SUPPORT_BROWSE_MEDIA,
     SUPPORT_TURN_OFF,
     SUPPORT_TURN_ON,
     SUPPORT_VOLUME_STEP,
@@ -44,12 +45,14 @@ import homeassistant.helpers.config_validation as cv
 
 from .const import DEFAULT_NAME, DOMAIN, SERVICE_ADB_COMMAND, VERSION
 from .utils import keyevent, startapp, check_port
+from .browse_media import build_item_response, library_payload
 
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_XIAOMI_TV = SUPPORT_VOLUME_STEP | SUPPORT_VOLUME_MUTE | SUPPORT_VOLUME_SET | \
     SUPPORT_TURN_ON | SUPPORT_TURN_OFF | SUPPORT_SELECT_SOURCE | SUPPORT_SELECT_SOUND_MODE | \
-    SUPPORT_PLAY_MEDIA | SUPPORT_PLAY | SUPPORT_PAUSE | SUPPORT_PREVIOUS_TRACK | SUPPORT_NEXT_TRACK
+    SUPPORT_PLAY_MEDIA | SUPPORT_PLAY | SUPPORT_PAUSE | SUPPORT_PREVIOUS_TRACK | SUPPORT_NEXT_TRACK | \
+    SUPPORT_BROWSE_MEDIA
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -176,6 +179,24 @@ class XiaomiTV(MediaPlayerEntity):
     @property
     def extra_state_attributes(self):
         return self._attributes
+
+    async def async_browse_media(self, media_content_type=None, media_content_id=None):
+        print(media_content_type, media_content_id)
+        # 主界面
+        if media_content_type in [None, "library"]:
+            return await self.hass.async_add_executor_job(library_payload, self)
+        # 节目列表
+        
+        payload = {
+            "search_type": media_content_type,
+            "search_id": media_content_id,
+        }
+        response = await build_item_response(self, payload)
+        if response is None:
+            raise BrowseError(
+                f"Media not found: {media_content_type} / {media_content_id}"
+            )
+        return response
 
     # 更新属性
     async def async_update(self):
