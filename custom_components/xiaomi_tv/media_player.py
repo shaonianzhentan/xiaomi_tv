@@ -45,7 +45,7 @@ import homeassistant.helpers.config_validation as cv
 
 from .const import DEFAULT_NAME, DOMAIN, SERVICE_ADB_COMMAND, VERSION
 from .utils import keyevent, startapp, check_port
-from .browse_media import build_item_response, library_payload
+from .browse_media import async_browse_media
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -181,22 +181,7 @@ class XiaomiTV(MediaPlayerEntity):
         return self._attributes
 
     async def async_browse_media(self, media_content_type=None, media_content_id=None):
-        print(media_content_type, media_content_id)
-        # 主界面
-        if media_content_type in [None, "library"]:
-            return await self.hass.async_add_executor_job(library_payload, self)
-        # 节目列表
-        
-        payload = {
-            "search_type": media_content_type,
-            "search_id": media_content_id,
-        }
-        response = await build_item_response(self, payload)
-        if response is None:
-            raise BrowseError(
-                f"Media not found: {media_content_type} / {media_content_id}"
-            )
-        return response
+        return await async_browse_media(self, media_content_type, media_content_id)
 
     # 更新属性
     async def async_update(self):

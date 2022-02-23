@@ -53,129 +53,64 @@ CHILD_TYPE_MEDIA_CLASS = {
 
 _LOGGER = logging.getLogger(__name__)
 
-
-class UnknownMediaType(BrowseError):
-    """Unknown media type."""
-
-
-async def build_item_response(media_player, payload):
-    """Create response payload for the provided media query."""
-    # print(payload)
-    search_id = payload["search_id"]
-    search_type = payload["search_type"]
-    hass = media_player.hass
-    thumbnail = None
-    title = None
-    media = None
-    media_class = MEDIA_CLASS_DIRECTORY
-    can_play = False
-    can_expand = True
-    children = []
-    base_url = get_url(hass)
-    is_library = 'library_' in search_type
-
-    properties = ["thumbnail"]
-    if is_library:
-        '''
-        # 读取配置目录
-        path = hass.config.path("media/ha_cloud_music")        
-        # 获取所有文件
-        music_list = media_player.api_music.get_local_media_list(search_type)
-        for item in music_list:
-            children.append(item_payload({
-                    "label": item['name'], "type": 'music', "songid": item['url']
-                }, media_player))
-        '''
-        title = search_type.replace('library_', '')
-        media_class = MEDIA_CLASS_TV_SHOW
-        can_play = True
-        can_expand = False
-
-    response = BrowseMedia(
-        media_class=media_class,
-        media_content_id=search_id,
-        media_content_type=search_type,
-        title=title,
-        can_play=can_play,
-        can_expand=can_expand,
-        children=children,
-        thumbnail=thumbnail,
-    )
-
-    if is_library:
-        response.children_media_class = MEDIA_CLASS_TV_SHOW
-    else:
-        response.calculate_children_class()
-
-    return response
-
-
-def item_payload(item, media_player):
-    # print(item)
-    title = item["label"]
-    media_class = None
-    media_content_type = item["type"]
-
-    if "songid" in item:
-        # 音乐
-        media_class = MEDIA_CLASS_TV_SHOW
-        media_content_id = f"{item['songid']}"
-        can_play = True
-        can_expand = False
-    else:
-        # 目录
-        media_class = MEDIA_CLASS_DIRECTORY
-        media_content_id = ""
-        can_play = False
-        can_expand = True
-
-    return BrowseMedia(
-        title=title,
-        media_class=media_class,
-        media_content_type=media_content_type,
-        media_content_id=media_content_id,
-        can_play=can_play,
-        can_expand=can_expand,
-        thumbnail=thumbnail
-    )
-
-
-def library_payload(media_player):
-    """
-    创建音乐库
-    """
-    library_info = BrowseMedia(
-        media_class=MEDIA_CLASS_DIRECTORY,
-        media_content_id="library",
-        media_content_type="library",
-        title="电视直播",
-        can_play=False,
-        can_expand=True,
-        children=[],
-    )
-    # 默认列表
-    channels = [
-        {
-            "id": 1,
-            "title": "省卫视",
-            "type": "tv",
-        },
-        {
-            "id": 2,
-            "title": "中央台",
-            "type": "tv",
-        }
-    ]
-    for item in channels:
-        library_info.children.append(
-            BrowseMedia(
-                title=item['title'],
-                media_class=MEDIA_CLASS_DIRECTORY,
-                media_content_type=item['type'],
-                media_content_id=item['id'],
-                can_play=False,
-                can_expand=True,
-                thumbnail="https://www.home-assistant.io/images/favicon-192x192.png"
-            )
+async def async_browse_media(media_player, media_content_type, media_content_id):
+    print(media_content_type, media_content_id)
+    # 主界面
+    if media_content_type in [None, 'home']:
+        library_info = BrowseMedia(
+            media_class=MEDIA_CLASS_DIRECTORY,
+            media_content_id="home",
+            media_content_type="home",
+            title="电视直播",
+            can_play=False,
+            can_expand=True,
+            children=[],
         )
+        # 分组列表
+        channels = ["省卫视", "中央台"]
+        for item in channels:
+            library_info.children.append(
+                BrowseMedia(
+                    title=item,
+                    media_class=MEDIA_CLASS_DIRECTORY,
+                    media_content_type="tv",
+                    media_content_id=item,
+                    can_play=False,
+                    can_expand=True,
+                    thumbnail="https://www.home-assistant.io/images/favicon-192x192.png"
+                )
+            )
+    elif media_content_type == 'tv':
+        library_info = BrowseMedia(
+            media_class=MEDIA_CLASS_DIRECTORY,
+            media_content_id=media_content_id,
+            media_content_type=media_content_type,
+            title=media_content_id,
+            can_play=False,
+            can_expand=False,
+            children=[],
+        )
+        # 播放列表
+        channels = [
+            {
+                "title": "湖北卫视",
+                "url": "https://freetyst.nf.migu.cn/public%2Fproduct9th%2Fproduct42%2F2021%2F02%2F0716%2F2019%E5%B9%B406%E6%9C%8826%E6%97%A517%E7%82%B908%E5%88%86%E5%86%85%E5%AE%B9%E5%87%86%E5%85%A5%E5%8D%8E%E7%BA%B373%E9%A6%96810969%2F%E5%85%A8%E6%9B%B2%E8%AF%95%E5%90%AC%2FMp3_64_22_16%2F6005751VAUU163746.mp3?Key=f24d176d32a189b2&Tim=1644937233045&channelid=01&msisdn=0d3a501458ea43e5abc748067be93cbc",
+            },
+            {
+                "title": "CCTV1",
+                "url": "http://111.63.117.13:6060/030000001000/CCTV-3/CCTV-3.m3u8",
+            }
+        ]
+        for item in channels:
+            library_info.children.append(
+                BrowseMedia(
+                    title=item['title'],
+                    media_class=MEDIA_CLASS_TV_SHOW,
+                    media_content_type=MEDIA_TYPE_TVSHOW,
+                    media_content_id=item['url'],
+                    can_play=True,
+                    can_expand=False,
+                    thumbnail="https://www.home-assistant.io/images/favicon-192x192.png"
+                )
+            )
     return library_info
