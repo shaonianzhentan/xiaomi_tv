@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Any
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow
+from homeassistant.config_entries import ConfigFlow, OptionsFlow, ConfigEntry
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import DOMAIN
@@ -26,3 +27,28 @@ class SimpleConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
 
         return self.async_create_entry(title=user_input.get('host'), data=user_input)
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(entry: ConfigEntry):
+        return OptionsFlowHandler(entry)
+
+ 
+class OptionsFlowHandler(OptionsFlow):
+    def __init__(self, config_entry: ConfigEntry):
+        self.config_entry = config_entry
+
+    async def async_step_init(self, user_input=None):
+        return await self.async_step_user(user_input)
+
+    async def async_step_user(self, user_input=None):
+        errors = {}
+        if user_input is None:
+            options = self.config_entry.options
+            errors = {}
+            DATA_SCHEMA = vol.Schema({
+                vol.Optional("url", default=options.get('url', '')): str
+            })
+            return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
+        # 选项更新
+        return self.async_create_entry(title=DOMAIN, data=user_input)

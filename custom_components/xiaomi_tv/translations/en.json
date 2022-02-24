@@ -1,12 +1,13 @@
 {
+    "title": "小米电视",
     "config": {
         "abort": {
             "single_instance_allowed": "仅允许单个配置"
         },
         "step": {
             "user": {
-                "description": "",
                 "title": "小米电视配置",
+                "description": "",
                 "data": {
                     "name": "名称",
                     "host": "IP地址"
@@ -14,5 +15,16 @@
             }
         }
     },
-    "title": "小米电视"
+    "options": {
+        "step": {
+            "user": {
+                "title": "直播源配置",
+                "description": "电视直播源必须是标准的m3u文件格式",
+                "data": {
+                    "url": "http://xxx.com/tv.m3u"
+                }
+            }
+        },
+        "error": {}
+    }
 }

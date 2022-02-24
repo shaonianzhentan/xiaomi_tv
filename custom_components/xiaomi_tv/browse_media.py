@@ -53,8 +53,11 @@ CHILD_TYPE_MEDIA_CLASS = {
 
 _LOGGER = logging.getLogger(__name__)
 
+from .parsem3u import get_tvsource
+
 async def async_browse_media(media_player, media_content_type, media_content_id):
     print(media_content_type, media_content_id)
+    tvsource = get_tvsource()
     # 主界面
     if media_content_type in [None, 'home']:
         library_info = BrowseMedia(
@@ -66,9 +69,8 @@ async def async_browse_media(media_player, media_content_type, media_content_id)
             can_expand=True,
             children=[],
         )
-        # 分组列表
-        channels = ["省卫视", "中央台"]
-        for item in channels:
+        # 分组列表        
+        for item in tvsource:
             library_info.children.append(
                 BrowseMedia(
                     title=item,
@@ -91,23 +93,14 @@ async def async_browse_media(media_player, media_content_type, media_content_id)
             children=[],
         )
         # 播放列表
-        channels = [
-            {
-                "title": "湖北卫视",
-                "url": "https://freetyst.nf.migu.cn/public%2Fproduct9th%2Fproduct42%2F2021%2F02%2F0716%2F2019%E5%B9%B406%E6%9C%8826%E6%97%A517%E7%82%B908%E5%88%86%E5%86%85%E5%AE%B9%E5%87%86%E5%85%A5%E5%8D%8E%E7%BA%B373%E9%A6%96810969%2F%E5%85%A8%E6%9B%B2%E8%AF%95%E5%90%AC%2FMp3_64_22_16%2F6005751VAUU163746.mp3?Key=f24d176d32a189b2&Tim=1644937233045&channelid=01&msisdn=0d3a501458ea43e5abc748067be93cbc",
-            },
-            {
-                "title": "CCTV1",
-                "url": "http://111.63.117.13:6060/030000001000/CCTV-3/CCTV-3.m3u8",
-            }
-        ]
+        channels = tvsource[media_content_id]
         for item in channels:
             library_info.children.append(
                 BrowseMedia(
-                    title=item['title'],
+                    title=item[0],
                     media_class=MEDIA_CLASS_TV_SHOW,
                     media_content_type=MEDIA_TYPE_TVSHOW,
-                    media_content_id=item['url'],
+                    media_content_id=item[1],
                     can_play=True,
                     can_expand=False,
                     thumbnail="https://www.home-assistant.io/images/favicon-192x192.png"
