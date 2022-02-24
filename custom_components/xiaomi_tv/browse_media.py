@@ -56,7 +56,7 @@ _LOGGER = logging.getLogger(__name__)
 from .parsem3u import get_tvsource
 
 async def async_browse_media(media_player, media_content_type, media_content_id):
-    print(media_content_type, media_content_id)
+    # print(media_content_type, media_content_id)
     tvsource = get_tvsource()
     # 主界面
     if media_content_type in [None, 'home']:
@@ -79,7 +79,7 @@ async def async_browse_media(media_player, media_content_type, media_content_id)
                     media_content_id=item,
                     can_play=False,
                     can_expand=True,
-                    thumbnail="https://www.home-assistant.io/images/favicon-192x192.png"
+                    thumbnail="https://brands.home-assistant.io/_/group/logo@2x.png"
                 )
             )
     elif media_content_type == 'tv':
@@ -103,7 +103,7 @@ async def async_browse_media(media_player, media_content_type, media_content_id)
                     media_content_id=item[1],
                     can_play=True,
                     can_expand=False,
-                    thumbnail="https://www.home-assistant.io/images/favicon-192x192.png"
+                    thumbnail="https://brands.home-assistant.io/_/media_player/logo@2x.png"
                 )
             )
     return library_info

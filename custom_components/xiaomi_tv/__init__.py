@@ -16,8 +16,7 @@ async def update_listener(hass, entry):
     config = entry.options
     url = config.get('url')
     # 更新直播源地址
-    update_tvsource(url)
-    print('配置更新', config)
+    await self.hass.async_add_executor_job(update_tvsource, url)
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
