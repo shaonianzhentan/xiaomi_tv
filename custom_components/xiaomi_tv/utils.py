@@ -51,7 +51,7 @@ async def getinstalledapp(ip):
 
 
 ''' 电视截屏 '''
-def with_opaque(self, pms, token=None):
+def with_opaque(pms, token=None):
         '''
         参考代码：https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/media_player.py
         '''

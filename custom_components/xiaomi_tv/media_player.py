@@ -1,8 +1,6 @@
 """Add support for the Xiaomi TVs."""
 import logging
-import aiohttp, json, time, hmac, socket, hashlib, os, re, datetime
-
-import voluptuous as vol
+import time, datetime
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -30,15 +28,11 @@ from homeassistant.const import (
     STATE_OFF, 
     STATE_ON, 
     STATE_PLAYING, 
-    STATE_PAUSED, 
-    STATE_IDLE, 
-    STATE_UNAVAILABLE,
-    ATTR_ENTITY_ID,
-    ATTR_COMMAND
+    STATE_PAUSED,
+    STATE_UNAVAILABLE
 )
-import homeassistant.helpers.config_validation as cv
 
-from .const import DEFAULT_NAME, DOMAIN, VERSION
+from .const import DOMAIN, VERSION
 from .utils import keyevent, startapp, check_port, getsysteminfo, changesource, getinstalledapp, capturescreen
 from .browse_media import async_browse_media
 from .dlna import MediaDLNA
@@ -295,7 +289,7 @@ class XiaomiTV(MediaPlayerEntity):
                 await self.dlna.async_update()
                 await self.adb.async_update()
             # 获取截图
-            res = capturescreen()
+            res = capturescreen(self.ip)
             if res is not None:
                 self._attr_media_image_url = res['url']
                 self._attr_app_id = res['id']
