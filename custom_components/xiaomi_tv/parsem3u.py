@@ -1,4 +1,4 @@
-import sys, re, os, requests
+import sys, re, os, aiohttp
 
 class track():
     def __init__(self, group, title, path):
@@ -50,13 +50,15 @@ def parseM3U(infile):
 # 直播源文件
 m3ufile = 'tv.m3u'
 
-def update_tvsource(m3u_url):
+async def update_tvsource(m3u_url):
     if m3u_url == '':
         return
     # 下载文件
-    res = requests.get(url=m3u_url)
-    with open(m3ufile,"wb") as fs:
-        fs.write(res.content)
+    request_timeout = aiohttp.ClientTimeout(total=10)
+    async with aiohttp.ClientSession(timeout=request_timeout) as session:
+        async with session.get(m3u_url) as response:
+            with open(m3ufile,"wb") as fs:
+                fs.write(await response.read())
 
 # 读取文件
 def get_tvsource():

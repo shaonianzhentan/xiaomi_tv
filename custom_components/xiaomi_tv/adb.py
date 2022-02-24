@@ -4,6 +4,7 @@ from homeassistant.const import (
     ATTR_COMMAND
 )
 from .const import DOMAIN, SERVICE_ADB_COMMAND
+from .utils import check_port
 
 class MediaADB():
 

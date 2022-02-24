@@ -9,6 +9,8 @@ from homeassistant.data_entry_flow import FlowResult
 
 from .const import DOMAIN
 
+from .parsem3u import update_tvsource
+
 DATA_SCHEMA = vol.Schema({
     vol.Required("name", default = "小米电视"): str,
     vol.Required("host"): str
@@ -51,4 +53,5 @@ class OptionsFlowHandler(OptionsFlow):
             })
             return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
         # 选项更新
+        await update_tvsource(user_input['url'])
         return self.async_create_entry(title=DOMAIN, data=user_input)

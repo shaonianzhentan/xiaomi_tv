@@ -228,7 +228,7 @@ class XiaomiTV(MediaPlayerEntity):
         await self.dlna.async_set_volume_level(volume)
 
     async def async_play_media(self, media_type, media_id, **kwargs):            
-        self.dlna.async_play_media(media_type, media_id)
+        await self.dlna.async_play_media(media_type, media_id)
 
     async def async_media_play(self):
         result = await self.dlna.async_media_play()
@@ -289,7 +289,7 @@ class XiaomiTV(MediaPlayerEntity):
                 await self.dlna.async_update()
                 await self.adb.async_update()
             # 获取截图
-            res = capturescreen(self.ip)
+            res = await capturescreen(self.ip)
             if res is not None:
                 self._attr_media_image_url = res['url']
                 self._attr_app_id = res['id']
