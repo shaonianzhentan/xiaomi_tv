@@ -310,5 +310,5 @@ class XiaomiTV(MediaPlayerEntity):
             if app_len > 0:
                 self.app_list = []
             # 关闭服务
-            self.adb.async_turn_off()
-            self.dlna.async_turn_off()
+            await self.adb.async_turn_off()
+            await self.dlna.async_turn_off()

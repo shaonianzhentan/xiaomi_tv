@@ -56,5 +56,4 @@ class MediaADB():
                 self.adb = None
 
     async def async_turn_off(self):
-        print('断开链接')
         self.adb = None

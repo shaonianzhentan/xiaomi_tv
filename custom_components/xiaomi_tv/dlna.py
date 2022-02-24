@@ -1,3 +1,5 @@
+from collections.abc import Mapping
+
 from async_upnp_client import UpnpFactory, UpnpError
 from async_upnp_client.aiohttp import AiohttpRequester
 from async_upnp_client.profiles.dlna import DmrDevice, TransportState
@@ -132,7 +134,6 @@ class MediaDLNA():
             await self.dlna.async_set_volume_level(volume)
 
     async def async_turn_off(self):
-        print('断开链接')
         self.dlna = None
 
     async def async_update(self):
