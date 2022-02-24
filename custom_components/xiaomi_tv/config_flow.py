@@ -8,7 +8,6 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import DOMAIN
-
 from .parsem3u import update_tvsource
 
 DATA_SCHEMA = vol.Schema({

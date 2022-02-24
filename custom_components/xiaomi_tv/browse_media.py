@@ -57,7 +57,7 @@ from .parsem3u import get_tvsource
 
 async def async_browse_media(media_player, media_content_type, media_content_id):
     # print(media_content_type, media_content_id)
-    tvsource = get_tvsource()
+    tvsource = await get_tvsource()
     # 主界面
     if media_content_type in [None, 'home']:
         library_info = BrowseMedia(
@@ -103,7 +103,7 @@ async def async_browse_media(media_player, media_content_type, media_content_id)
                     media_content_id=item[1],
                     can_play=True,
                     can_expand=False,
-                    thumbnail="https://brands.home-assistant.io/_/media_player/logo@2x.png"
+                    thumbnail=""
                 )
             )
     return library_info

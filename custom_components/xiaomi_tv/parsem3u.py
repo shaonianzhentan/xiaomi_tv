@@ -1,4 +1,4 @@
-import sys, re, os, aiohttp
+import sys, re, os, aiohttp, time
 
 class track():
     def __init__(self, group, title, path):
@@ -31,10 +31,10 @@ def parseM3U(infile):
         if line.startswith('#EXTINF:'):
             # pull length and title from #EXTINF line
             info,title=line.split('#EXTINF:')[1].split(',',1)
-            group = '默认'
-            matchObj = re.match(r'(.*)group-title="(.+)"', info)
-            if matchObj is not None:
-                group = matchObj.group(2)
+            matchObj = re.match(r'(.*)status="online"', info)
+            if matchObj is None:
+                continue
+            group = '直播列表'
             song=track(group,title,None)
         elif (len(line) != 0):
             # pull song path from all other, non-blank lines
@@ -49,6 +49,7 @@ def parseM3U(infile):
 
 # 直播源文件
 m3ufile = 'xiaomi_tv.m3u'
+m3ufileurl = 'https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u'
 
 async def update_tvsource(m3u_url):
     if m3u_url == '':
@@ -61,9 +62,13 @@ async def update_tvsource(m3u_url):
                 fs.write(await response.read())
 
 # 读取文件
-def get_tvsource():
+async def get_tvsource():
+    # 不存在，则下载
     if os.path.exists(m3ufile) == False:
-        return {}
+        await update_tvsource(m3ufileurl)
+    # 超过1小时，则更新
+    if int(time.time()) > int(os.stat(m3ufile).st_mtime + 3600):
+        await update_tvsource(m3ufileurl)
     # 判断文件是否存在
     playlist = parseM3U(m3ufile)
     playsource = {}
@@ -75,9 +80,3 @@ def get_tvsource():
             playsource[track.group] = []
         playsource[track.group].append((track.title, track.path))
     return playsource
-
-'''
-playsource = get_playsource('https://raw.githubusercontent.com/reysc/M3U8/master/all.m3u')
-for item in playsource:
-    print(item)
-'''
