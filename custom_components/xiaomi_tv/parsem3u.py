@@ -48,7 +48,7 @@ def parseM3U(infile):
     return playlist
 
 # 直播源文件
-m3ufile = 'tv.m3u'
+m3ufile = 'xiaomi_tv.m3u'
 
 async def update_tvsource(m3u_url):
     if m3u_url == '':
