@@ -1,4 +1,5 @@
-import aiohttp, json, socket
+import aiohttp, json, time, hmac, socket, hashlib, os, re, datetime
+from urllib.parse import urlencode, urlparse, parse_qsl
 
 def check_port(ip, port):
     is_alive = True
@@ -32,6 +33,49 @@ async def startapp(ip, packagename):
 async def keyevent(ip, keycode):
     return await mitv_api(ip, f'controller?action=keyevent&keycode={keycode}')
 
+# 获取电视信息
+async def getsysteminfo(ip):
+    res = await mitv_api(ip, f'controller?action=getsysteminfo')
+    if res is not None:
+        return res['data']
+
+# 发送按键
+async def changesource(ip, source):
+    return await mitv_api(ip, f'controller?action=changesource&source={source}')
+
+# 获取安装应用
+async def getinstalledapp(ip):
+    res = await mitv_api(ip, f'controller?action=getinstalledapp&count=999&changeIcon=1')
+    if res is not None:
+        return res['data']['AppInfo']       
+
+
+''' 电视截屏 '''
+def with_opaque(self, pms, token=None):
+        '''
+        参考代码：https://github.com/al-one/hass-xiaomi-miot/blob/master/custom_components/xiaomi_miot/media_player.py
+        '''
+        if token is None:
+            token = '881fd5a8c94b4945b46527b07eca2431'
+        _hmac_key = '2840d5f0d078472dbc5fb78e39da123e'
+        pms.update({ 'timestamp': int(time.time() * 1000), 'token': token })
+        pms['opaque'] = hmac.new(_hmac_key.encode(), urlencode(pms).encode(), hashlib.sha1).hexdigest()
+        pms.pop('token', None)
+        return pms
+
+async def capturescreen(ip):
+    params = with_opaque({'action': 'capturescreen', 'compressrate': 100})
+    res = await mitv_api(ip, f'controller?{urlencode(params)}')
+    if res is not None:
+        rdt = res['data']
+        # 获取图片
+        token = rdt.get('token')
+        params = with_opaque({'action': 'getResource', 'name': 'screenCapture'}, token)
+        return {
+            'url': f'http://{ip}:6095/request?{urlencode(params)}',
+            'id': rdt.get('pkg'),
+            'name': rdt.get('label')
+        }
 
 def single_get_first(unicode1):
     str1 = unicode1.encode('gbk')
