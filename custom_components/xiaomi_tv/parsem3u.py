@@ -34,7 +34,29 @@ def parseM3U(infile):
             matchObj = re.match(r'(.*)status="online"', info)
             if matchObj is None:
                 continue
-            group = '直播列表'
+            group = '默认列表'
+            if 'CCTV' in title:
+                group = 'CCTV'
+            elif 'NewTV' in title:
+                group = 'NewTV'
+            elif 'SiTV' in title:
+                group = 'SiTV'
+            elif '电影' in title or '影视' in title or '影視' in title or '视频' in title:
+                group = '电影视频'
+            elif '新闻' in title or '新聞' in title or '资讯' in title:
+                group = '新闻资讯'
+            elif '少儿' in title or '卡通' in title:
+                group = '少儿卡通'
+            elif '卫视' in title or '衛視' in title:
+                group = '卫视'
+            elif '上海' in title:
+                group = '上海'
+            elif '浙江' in title:
+                group = '浙江'
+            elif '江苏' in title:
+                group = '江苏'
+            elif '中国' in title or '中文' in title:
+                group = '中文频道'
             song=track(group,title,None)
         elif (len(line) != 0):
             # pull song path from all other, non-blank lines
