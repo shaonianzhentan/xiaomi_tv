@@ -84,7 +84,10 @@ async def update_tvsource(m3u_url):
                 fs.write(await response.read())
 
 # 读取文件
-async def get_tvsource():
+async def get_tvsource(tv_url):
+    print(tv_url)
+    if tv_url != '':
+        m3ufileurl = tv_url
     # 不存在，则下载
     if os.path.exists(m3ufile) == False:
         await update_tvsource(m3ufileurl)

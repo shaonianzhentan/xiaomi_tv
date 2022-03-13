@@ -24,7 +24,7 @@ from homeassistant.components.media_player.const import (
 )
 from homeassistant.const import (
     CONF_HOST, 
-    CONF_NAME, 
+    CONF_NAME,
     STATE_OFF, 
     STATE_ON, 
     STATE_PLAYING, 
@@ -52,12 +52,18 @@ async def async_setup_entry(
 ) -> None:
     host = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
-    async_add_entities([XiaomiTV(host, name, hass)], True)
+    tv_url = entry.options.get('tv_url', '')
+    # 引入卡片
+    if entry.options.get('remote', True):
+        hass.http.register_static_path('/xiaomi_tv-local', hass.config.path("custom_components/xiaomi_tv/www"), False)
+        hass.components.frontend.add_extra_js_url(hass, '/xiaomi_tv-local/tv-remote.js?v=' + VERSION)
+
+    async_add_entities([XiaomiTV(host, name, tv_url, hass)], True)
 
 class XiaomiTV(MediaPlayerEntity):
     """Represent the Xiaomi TV for Home Assistant."""
 
-    def __init__(self, ip, name, hass):
+    def __init__(self, ip, name, tv_url, hass):
         """Receive IP address and name to construct class."""
         self.hass = hass
         self.ip = ip
@@ -68,6 +74,8 @@ class XiaomiTV(MediaPlayerEntity):
         self.is_alive = False
         self._source_list = []
         self._sound_mode_list = []
+        # 直播源
+        self.tv_url = tv_url
         # DLNA媒体设备
         self.dlna = MediaDLNA(ip)
         self.adb = MediaADB(ip, self)

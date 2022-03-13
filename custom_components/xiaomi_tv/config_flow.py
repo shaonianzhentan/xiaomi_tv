@@ -48,9 +48,10 @@ class OptionsFlowHandler(OptionsFlow):
             options = self.config_entry.options
             errors = {}
             DATA_SCHEMA = vol.Schema({
-                vol.Optional("url", default=options.get('url', '')): str
+                vol.Optional("tv_url", default=options.get('tv_url', '')): str,
+                vol.Optional("remote_card", default=options.get('remote_card', True)): bool
             })
             return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
         # 选项更新
-        await update_tvsource(user_input['url'])
+        await update_tvsource(user_input['tv_url'])
         return self.async_create_entry(title=DOMAIN, data=user_input)

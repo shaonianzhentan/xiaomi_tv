@@ -57,7 +57,7 @@ from .parsem3u import get_tvsource
 
 async def async_browse_media(media_player, media_content_type, media_content_id):
     # print(media_content_type, media_content_id)
-    tvsource = await get_tvsource()
+    tvsource = await get_tvsource(media_player.tv_url)
     # 主界面
     if media_content_type in [None, 'home']:
         library_info = BrowseMedia(
