@@ -217,16 +217,6 @@ class TVRemoteCard extends HTMLElement {
                 this.hacard.querySelector("#bottom_buttons").appendChild(buttonBox)
             }, this)
         }
-        // 底部文本输入框
-        // if(this.config.)
-        const input = this.hacard.querySelector('#bottom_input input')
-        input.onkeydown = (event) => {
-            if (event.keyCode == 13) {
-                const text = input.value.trim()
-                console.log(text)
-                input.value = ''
-            }
-        }
     }
 
     selectMode(service_name, data = {}) {
