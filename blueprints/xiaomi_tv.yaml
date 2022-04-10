@@ -4,6 +4,14 @@ blueprint:
   domain: automation
   source_url: https://github.com/shaonianzhentan/xiaomi_tv
   input:
+    media_entity:
+      name: 电视
+      description: 小米电视
+      default: []
+      selector:
+        entity:
+          domain: media_player
+          device_class: tv
     tv_on:
       name: 打开电视
       description: TV ON
@@ -19,6 +27,8 @@ blueprint:
 trigger:
 - platform: event
   event_type: xiaomi_tv
+  event_data:
+    entity_id: !input media_entity
 action:
 - variables:
     type: '{{ trigger.event.data.type }}'
