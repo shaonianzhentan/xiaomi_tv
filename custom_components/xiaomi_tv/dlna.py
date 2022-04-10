@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 
-from async_upnp_client import UpnpFactory, UpnpError
+from async_upnp_client.client_factory import UpnpFactory, UpnpError
 from async_upnp_client.aiohttp import AiohttpRequester
 from async_upnp_client.profiles.dlna import DmrDevice, TransportState
 
