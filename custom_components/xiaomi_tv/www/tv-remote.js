@@ -1,4 +1,4 @@
-class TVRemoteCard extends HTMLElement {
+window.customElements.define('tv-remote-card', class extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -108,11 +108,11 @@ class TVRemoteCard extends HTMLElement {
             ],
             bottom_buttons: [
                 {
-                    icon: 'mdi:music-box',
-                    service: 'media_player.select_source',
+                    icon: 'mdi:android',
+                    service: 'remote.send_command',
                     data: {
-                        source: 'QQ音乐',
-                        entity_id: defaultEntity
+                        command: 'adb',
+                        entity_id: defaultRemote
                     },
                 },
                 {
@@ -155,7 +155,7 @@ class TVRemoteCard extends HTMLElement {
         if (!config.entity) {
             throw new Error('你需要定义一个实体');
         }
-        this.config = deepClone(config);
+        this.config = config;
 
         const root = this.shadowRoot;
         if (root.lastChild) root.removeChild(root.lastChild);
@@ -445,24 +445,7 @@ class TVRemoteCard extends HTMLElement {
     getCardSize() {
         return 1;
     }
-}
-
-function deepClone(value) {
-    if (!(!!value && typeof value == 'object')) {
-        return value;
-    }
-    if (Object.prototype.toString.call(value) == '[object Date]') {
-        return new Date(value.getTime());
-    }
-    if (Array.isArray(value)) {
-        return value.map(deepClone);
-    }
-    var result = {};
-    Object.keys(value).forEach(
-        function (key) { result[key] = deepClone(value[key]); });
-    return result;
-}
-customElements.define('tv-remote-card', TVRemoteCard);
+});
 
 // 添加预览
 window.customCards = window.customCards || [];
