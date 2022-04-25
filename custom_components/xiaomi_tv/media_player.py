@@ -73,7 +73,7 @@ class XiaomiTV(MediaPlayerEntity):
         self._state = STATE_OFF
         self.is_alive = False
         self._source_list = []
-        self._sound_mode_list = []
+        self._sound_mode_list = ['hdmi1', 'hdmi2', 'hdmi3', 'gallery', 'aux', 'tv', 'vga', 'av', 'dtmb']
         # 直播源
         self.tv_url = tv_url
         # DLNA媒体设备
@@ -181,16 +181,23 @@ class XiaomiTV(MediaPlayerEntity):
 
     # 选择应用
     async def async_select_source(self, source):
-        if self.apps[source] is not None:
+        app = self.apps[source]
+        if app is not None:
+            # 判断是否视频源
+            if self.sound_mode_list.count(app) > 0:
+                await self.async_select_sound_mode(app)
+                return
+
             # 在选择应用时，先回到首页
             await keyevent(self.ip, 'home')
             time.sleep(1)
-            await startapp(self.ip, self.apps[source])
+            await startapp(self.ip, app)
 
     # 选择数据源
-    async def async_select_source_mode(self, mode):
-        if self.sound_mode_list.count(mode) > 0:
-            await changesource(mode)
+    async def async_select_sound_mode(self, sound_mode):
+        if self.sound_mode_list.count(sound_mode) > 0:
+            self.fire_event(sound_mode)
+            await changesource(self.ip, sound_mode)
 
     async def async_turn_off(self):
         if self._state != STATE_OFF:
@@ -199,7 +206,6 @@ class XiaomiTV(MediaPlayerEntity):
             self._state = STATE_OFF
 
     async def async_turn_on(self):
-        """Wake the TV back up from sleep."""
         if self._state != STATE_ON:
             self.fire_event('on')
             self._state = STATE_ON
@@ -277,15 +283,17 @@ class XiaomiTV(MediaPlayerEntity):
                 # 获取电视信息
                 systeminfo = await getsysteminfo(self.ip)
                 if systeminfo is not None:
-                    devicename = systeminfo['devicename']
-                    if '电视' in devicename:
-                        self._sound_mode_list = ['hdmi1', 'hdmi2', 'hdmi3', 'gallery', 'aux', 'tv', 'vga', 'av', 'dtmb']
-                    self._attr_media_title = devicename
+                    self._attr_media_title = systeminfo['devicename']
                 # 获取应用列表
                 app_info = await getinstalledapp(self.ip)
                 if app_info is not None:
                     for app in app_info:
                         self.apps.update({ app['AppName']: app['PackageName'] })
+                
+                # 绑定视频源
+                for mode in self._sound_mode_list:
+                    self.apps.update({ mode.upper(): mode })
+
                 # 绑定数据源
                 _source_list = []
                 for name in self.apps:

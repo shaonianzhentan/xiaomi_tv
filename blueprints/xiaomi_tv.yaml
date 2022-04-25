@@ -1,5 +1,5 @@
 blueprint:
-  name: 电视开关
+  name: 小米电视
   description: 电视开关事件
   domain: automation
   source_url: https://github.com/shaonianzhentan/xiaomi_tv
@@ -10,17 +10,53 @@ blueprint:
       default: []
       selector:
         entity:
+          integration: xiaomi_tv
           domain: media_player
-          device_class: tv
     tv_on:
       name: 打开电视
-      description: TV ON
+      description: 需要依赖小爱音箱或红外遥控进行开机控制
       default: []
       selector:
         action: {}
     tv_off:
       name: 关闭电视
-      description: TV OFF
+      description: 如果是小米盒子，可以在关闭设备后，调用服务控制普通电视的关闭
+      default: []
+      selector:
+        action: {}
+    mode_hdmi1:
+      name: HDMI1
+      description: 信号源 hdmi1
+      default: []
+      selector:
+        action: {}
+    mode_hdmi2:
+      name: HDMI2
+      description: 信号源 hdmi2
+      default: []
+      selector:
+        action: {}
+    mode_hdmi3:
+      name: HDMI3
+      description: 信号源 hdmi3
+      default: []
+      selector:
+        action: {}
+    mode_tv:
+      name: TV
+      description: 信号源 tv
+      default: []
+      selector:
+        action: {}
+    mode_vga:
+      name: VGA
+      description: 信号源 vga
+      default: []
+      selector:
+        action: {}
+    mode_av:
+      name: AV
+      description: 信号源 av
       default: []
       selector:
         action: {}
@@ -39,3 +75,21 @@ action:
   - conditions:
     - '{{ type == "off" }}'
     sequence: !input 'tv_off'
+  - conditions:
+    - '{{ type == "hdmi1" }}'
+    sequence: !input 'mode_hdmi1'
+  - conditions:
+    - '{{ type == "hdmi2" }}'
+    sequence: !input 'mode_hdmi2'
+  - conditions:
+    - '{{ type == "hdmi3" }}'
+    sequence: !input 'mode_hdmi3'
+  - conditions:
+    - '{{ type == "tv" }}'
+    sequence: !input 'mode_tv'
+  - conditions:
+    - '{{ type == "vga" }}'
+    sequence: !input 'mode_vga'
+  - conditions:
+    - '{{ type == "av" }}'
+    sequence: !input 'mode_av'

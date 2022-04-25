@@ -10,14 +10,15 @@ blueprint:
       default: []
       selector:
         entity:
+          integration: xiaomi_tv
           domain: media_player
-          device_class: tv
     remote_entity:
       name: 遥控器
       description: 小米电视遥控器
       default: []
       selector:
         entity:
+          integration: xiaomi_tv
           domain: remote
 trigger:
 - platform: event
