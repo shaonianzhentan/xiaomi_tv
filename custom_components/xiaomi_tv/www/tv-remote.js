@@ -1,237 +1,238 @@
-window.customElements.define('tv-remote-card', class extends HTMLElement {
-    constructor() {
-        super();
-        this.attachShadow({ mode: 'open' });
-    }
-
-    set hass(hass) {
-        this._hass = hass;
-        this._entity = this.config.entity;
-        if (['not_home', 'off'].includes(this._hass.states[this._entity].state)) {
-            if (this.hacard && !this.hacard.classList.contains('not_home')) {
-                this.hacard.classList.add('not_home')
-            }
+customElements.whenDefined("hui-view").then(() => {
+    customElements.define('tv-remote-card', class extends HTMLElement {
+        constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
         }
-    }
 
-    // 自定义默认配置
-    static getStubConfig() {
-        const defaultEntity = 'media_player.xiao_mi_dian_shi'
-        const defaultRemote = 'remote.xiao_mi_dian_shi'
-        return {
-            vibrate: true,
-            entity: defaultEntity,
-            circle: {
-                ok: {
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'enter',
-                        entity_id: defaultRemote
-                    }
-                },
-                up: {
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'up',
-                        entity_id: defaultRemote
-                    }
-                },
-                down: {
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'down',
-                        entity_id: defaultRemote
-                    }
-                }, left: {
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'left',
-                        entity_id: defaultRemote
-                    }
-                }, right: {
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'right',
-                        entity_id: defaultRemote
-                    }
-                }
-            },
-            right_buttons: [
-                {
-                    icon: 'mdi:power',
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'power',
-                        entity_id: defaultRemote
-                    },
-                },
-                {
-                    icon: 'mdi:keyboard-return',
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'back',
-                        entity_id: defaultRemote
-                    }
-                },
-                {
-                    icon: 'mdi:home',
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'home',
-                        entity_id: defaultRemote
-                    }
-                },
-                {
-                    icon: 'mdi:menu',
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'menu',
-                        entity_id: defaultRemote
-                    }
-                },
-                {
-                    icon: 'mdi:volume-minus',
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'volumedown',
-                        entity_id: defaultRemote
-                    }
-                },
-                {
-                    icon: 'mdi:volume-plus',
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'volumeup',
-                        entity_id: defaultRemote
-                    }
-                },
-            ],
-            bottom_buttons: [
-                {
-                    icon: 'mdi:android',
-                    service: 'remote.send_command',
-                    data: {
-                        command: 'adb',
-                        entity_id: defaultRemote
-                    },
-                },
-                {
-                    icon: 'mdi:movie-open-settings',
-                    service: 'media_player.select_source',
-                    data: {
-                        source: '银河奇异果',
-                        entity_id: defaultEntity
-                    },
-                },
-                {
-                    icon: 'mdi:cat',
-                    service: 'media_player.select_source',
-                    data: {
-                        source: 'CIBN酷喵',
-                        entity_id: defaultEntity
-                    },
-                },
-                {
-                    icon: 'mdi:cloud',
-                    service: 'media_player.select_source',
-                    data: {
-                        source: '云视听极光',
-                        entity_id: defaultEntity
-                    },
-                },
-                {
-                    icon: 'mdi:kodi',
-                    service: 'media_player.select_source',
-                    data: {
-                        source: 'Kodi',
-                        entity_id: defaultEntity
-                    },
-                },
-            ]
-        }
-    }
-
-    setConfig(config) {
-        if (!config.entity) {
-            throw new Error('你需要定义一个实体');
-        }
-        this.config = config;
-
-        const root = this.shadowRoot;
-        if (root.lastChild) root.removeChild(root.lastChild);
-        const style = document.createElement('style');
-        style.textContent = this._cssData();
-        root.appendChild(style);
-        this.hacard = document.createElement('ha-card');
-        this.hacard.className = 'f-ha-card';
-        this.hacard.innerHTML = this._htmlData();
-        root.appendChild(this.hacard);
-        const $ = this.hacard.querySelector.bind(this.hacard);
-        // 环形按钮
-        Object.keys(this.config.circle).forEach(key => {
-            const ele = $(`#l${key}`)
-            let value = this.config.circle[key]
-            ele.onclick = () => {
-                if (typeof value === 'string') {
-                    this.selectMode(value)
-                } else {
-                    this.selectMode(value.service, value.data)
+        set hass(hass) {
+            this._hass = hass;
+            this._entity = this.config.entity;
+            if (['not_home', 'off'].includes(this._hass.states[this._entity].state)) {
+                if (this.hacard && !this.hacard.classList.contains('not_home')) {
+                    this.hacard.classList.add('not_home')
                 }
             }
-        })
-        // 左侧按钮
-        if (this.config.right_buttons) {
-            this.config.right_buttons.forEach(function (button) {
-                let buttonBox = document.createElement('paper-button');
-                buttonBox.innerHTML = `
+        }
+
+        // 自定义默认配置
+        static getStubConfig() {
+            const defaultEntity = 'media_player.xiao_mi_dian_shi'
+            const defaultRemote = 'remote.xiao_mi_dian_shi'
+            return {
+                vibrate: true,
+                entity: defaultEntity,
+                circle: {
+                    ok: {
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'enter',
+                            entity_id: defaultRemote
+                        }
+                    },
+                    up: {
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'up',
+                            entity_id: defaultRemote
+                        }
+                    },
+                    down: {
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'down',
+                            entity_id: defaultRemote
+                        }
+                    }, left: {
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'left',
+                            entity_id: defaultRemote
+                        }
+                    }, right: {
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'right',
+                            entity_id: defaultRemote
+                        }
+                    }
+                },
+                right_buttons: [
+                    {
+                        icon: 'mdi:power',
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'power',
+                            entity_id: defaultRemote
+                        },
+                    },
+                    {
+                        icon: 'mdi:keyboard-return',
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'back',
+                            entity_id: defaultRemote
+                        }
+                    },
+                    {
+                        icon: 'mdi:home',
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'home',
+                            entity_id: defaultRemote
+                        }
+                    },
+                    {
+                        icon: 'mdi:menu',
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'menu',
+                            entity_id: defaultRemote
+                        }
+                    },
+                    {
+                        icon: 'mdi:volume-minus',
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'volumedown',
+                            entity_id: defaultRemote
+                        }
+                    },
+                    {
+                        icon: 'mdi:volume-plus',
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'volumeup',
+                            entity_id: defaultRemote
+                        }
+                    },
+                ],
+                bottom_buttons: [
+                    {
+                        icon: 'mdi:android',
+                        service: 'remote.send_command',
+                        data: {
+                            command: 'adb',
+                            entity_id: defaultRemote
+                        },
+                    },
+                    {
+                        icon: 'mdi:movie-open-settings',
+                        service: 'media_player.select_source',
+                        data: {
+                            source: '银河奇异果',
+                            entity_id: defaultEntity
+                        },
+                    },
+                    {
+                        icon: 'mdi:cat',
+                        service: 'media_player.select_source',
+                        data: {
+                            source: 'CIBN酷喵',
+                            entity_id: defaultEntity
+                        },
+                    },
+                    {
+                        icon: 'mdi:cloud',
+                        service: 'media_player.select_source',
+                        data: {
+                            source: '云视听极光',
+                            entity_id: defaultEntity
+                        },
+                    },
+                    {
+                        icon: 'mdi:kodi',
+                        service: 'media_player.select_source',
+                        data: {
+                            source: 'Kodi',
+                            entity_id: defaultEntity
+                        },
+                    },
+                ]
+            }
+        }
+
+        setConfig(config) {
+            if (!config.entity) {
+                throw new Error('你需要定义一个实体');
+            }
+            this.config = config;
+
+            const root = this.shadowRoot;
+            if (root.lastChild) root.removeChild(root.lastChild);
+            const style = document.createElement('style');
+            style.textContent = this._cssData();
+            root.appendChild(style);
+            this.hacard = document.createElement('ha-card');
+            this.hacard.className = 'f-ha-card';
+            this.hacard.innerHTML = this._htmlData();
+            root.appendChild(this.hacard);
+            const $ = this.hacard.querySelector.bind(this.hacard);
+            // 环形按钮
+            Object.keys(this.config.circle).forEach(key => {
+                const ele = $(`#l${key}`)
+                let value = this.config.circle[key]
+                ele.onclick = () => {
+                    if (typeof value === 'string') {
+                        this.selectMode(value)
+                    } else {
+                        this.selectMode(value.service, value.data)
+                    }
+                }
+            })
+            // 左侧按钮
+            if (this.config.right_buttons) {
+                this.config.right_buttons.forEach(function (button) {
+                    let buttonBox = document.createElement('paper-button');
+                    buttonBox.innerHTML = `
                         <div class="lbicon">
                             <ha-icon class="ha-icon" data-state="on" icon="`+ button.icon + `"></ha-icon>
                         </div>
                     `;
-                buttonBox.addEventListener('click', (e) => {
-                    if ('entity' in button) {
-                        this.selectMode(button.entity)
-                    } else {
-                        this.selectMode(button.service, button.data)
-                    }
-                }, false);
-                this.hacard.querySelector("#right_buttons").appendChild(buttonBox)
-            }, this)
-        }
-        // 底部按钮
-        if (this.config.bottom_buttons) {
-            this.config.bottom_buttons.forEach(function (button) {
-                let buttonBox = document.createElement('paper-button');
-                buttonBox.innerHTML = `
+                    buttonBox.addEventListener('click', (e) => {
+                        if ('entity' in button) {
+                            this.selectMode(button.entity)
+                        } else {
+                            this.selectMode(button.service, button.data)
+                        }
+                    }, false);
+                    this.hacard.querySelector("#right_buttons").appendChild(buttonBox)
+                }, this)
+            }
+            // 底部按钮
+            if (this.config.bottom_buttons) {
+                this.config.bottom_buttons.forEach(function (button) {
+                    let buttonBox = document.createElement('paper-button');
+                    buttonBox.innerHTML = `
                         <div class="lbicon">
                             <ha-icon class="ha-icon" data-state="on" icon="`+ button.icon + `"></ha-icon>
                         </div>
                     `;
-                buttonBox.addEventListener('click', (e) => {
-                    if ('entity' in button) {
-                        this.selectMode(button.entity)
-                    } else {
-                        this.selectMode(button.service, button.data)
-                    }
-                }, false);
-                this.hacard.querySelector("#bottom_buttons").appendChild(buttonBox)
-            }, this)
+                    buttonBox.addEventListener('click', (e) => {
+                        if ('entity' in button) {
+                            this.selectMode(button.entity)
+                        } else {
+                            this.selectMode(button.service, button.data)
+                        }
+                    }, false);
+                    this.hacard.querySelector("#bottom_buttons").appendChild(buttonBox)
+                }, this)
+            }
         }
-    }
 
-    selectMode(service_name, data = {}) {
-        var arr = service_name.split('.');
-        var domain = arr[0];
-        var service = arr[1];
-        this._hass.callService(domain, service, data)
-        // 震动
-        if (this.config.vibrate && navigator.vibrate) {
-            navigator.vibrate(50)
+        selectMode(service_name, data = {}) {
+            var arr = service_name.split('.');
+            var domain = arr[0];
+            var service = arr[1];
+            this._hass.callService(domain, service, data)
+            // 震动
+            if (this.config.vibrate && navigator.vibrate) {
+                navigator.vibrate(50)
+            }
         }
-    }
 
-    _htmlData() {
-        var html = `       
+        _htmlData() {
+            var html = `       
         <div id="remote" class="remote_f">
             <div class="box">
                 <div class="scale">
@@ -274,10 +275,10 @@ window.customElements.define('tv-remote-card', class extends HTMLElement {
         </div>
         <div id="bottom_buttons"></div>
     `
-        return html;
-    }
-    _cssData() {
-        var css = `
+            return html;
+        }
+        _cssData() {
+            var css = `
         #remote{
             display:flex;
             flex-wrap: wrap;
@@ -440,18 +441,18 @@ window.customElements.define('tv-remote-card', class extends HTMLElement {
             background-color: var(--state-color-off);
         }
         `
-        return css;
-    }
-    getCardSize() {
-        return 1;
-    }
-});
-
-// 添加预览
-window.customCards = window.customCards || [];
-window.customCards.push({
-    type: "tv-remote-card",
-    name: "电视遥控器",
-    preview: true,
-    description: "电视遥控器卡片"
-});
+            return css;
+        }
+        getCardSize() {
+            return 1;
+        }
+    });
+    // 添加预览
+    window.customCards = window.customCards || [];
+    window.customCards.push({
+        type: "tv-remote-card",
+        name: "电视遥控器",
+        preview: true,
+        description: "电视遥控器卡片"
+    });
+})
