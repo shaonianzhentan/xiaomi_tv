@@ -53,10 +53,8 @@ async def async_setup_entry(
     host = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
     tv_url = entry.options.get('tv_url', '')
-    # 引入卡片
-    if entry.options.get('remote', True):
-        hass.http.register_static_path('/xiaomi_tv-local', hass.config.path("custom_components/xiaomi_tv/www"), False)
-        hass.components.frontend.add_extra_js_url(hass, '/xiaomi_tv-local/tv-remote.js?v=' + VERSION)
+    hass.http.register_static_path('/xiaomi_tv-local', hass.config.path("custom_components/xiaomi_tv/www"), False)
+    hass.components.frontend.add_extra_js_url(hass, '/xiaomi_tv-local/tv-remote.js?v=' + VERSION)
 
     async_add_entities([XiaomiTV(host, name, tv_url, hass)], True)
 

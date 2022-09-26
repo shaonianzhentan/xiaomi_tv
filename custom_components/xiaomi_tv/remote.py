@@ -24,7 +24,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     host = entry.data.get(CONF_HOST)
-    name = entry.data.get(CONF_NAME)
+    name = entry.data.get(CONF_NAME) + '遥控器'
     async_add_entities([XiaomiRemote(host, name, hass)], True)
 
 class XiaomiRemote(RemoteEntity):

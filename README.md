@@ -4,12 +4,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/Home-Assistant-%23049cdb)](https://www.home-assistant.io/)
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
-
-
 ![visit](https://visitor-badge.laobi.icu/badge?page_id=shaonianzhentan.xiaomi_tv&left_text=visit)
-![forks](https://img.shields.io/github/forks/shaonianzhentan/xiaomi_tv)
-![stars](https://img.shields.io/github/stars/shaonianzhentan/xiaomi_tv)
-
 
 ## 使用方式
 
@@ -84,6 +79,10 @@ data:
 ```
 
 ## 更新日志
+
+### v1.5
+- 默认引入遥控器卡片
+- 优化电视直播资源链接
 
 ### v1.4.3
 - 电视信号源添加到应用列表中

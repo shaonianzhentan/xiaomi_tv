@@ -71,7 +71,7 @@ def parseM3U(infile):
 
 # 直播源文件
 m3ufile = 'xiaomi_tv.m3u'
-m3ufileurl = 'https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u'
+m3ufileurl = 'https://ghproxy.com/https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u'
 
 async def update_tvsource(m3u_url):
     if m3u_url == '':
