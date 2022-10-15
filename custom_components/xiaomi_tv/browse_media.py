@@ -123,8 +123,8 @@ async def async_browse_media(media_player, media_content_type, media_content_id)
             library_info.children.append(
                 BrowseMedia(
                     title=item[0],
-                    media_class=MEDIA_CLASS_MUSIC,
-                    media_content_type=MEDIA_TYPE_MUSIC,
+                    media_class=CHILD_TYPE_MEDIA_CLASS[MEDIA_TYPE_TVSHOW],
+                    media_content_type=MEDIA_TYPE_TVSHOW,
                     media_content_id=item[1],
                     can_play=True,
                     can_expand=False
