@@ -199,9 +199,9 @@ class XiaomiTV(MediaPlayerEntity):
 
     async def async_turn_off(self):
         if self._state != STATE_OFF:
+            self._state = STATE_OFF
             await keyevent(self.ip, 'power')
             self.fire_event('off')
-            self._state = STATE_OFF
 
     async def async_turn_on(self):
         if self._state != STATE_ON:
