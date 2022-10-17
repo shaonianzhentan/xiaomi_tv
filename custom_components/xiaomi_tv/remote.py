@@ -13,7 +13,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME
 import homeassistant.helpers.config_validation as cv
-from .const import DOMAIN, DEFAULT_NAME, VERSION
+from .const import DOMAIN
+from .manifest import manifest
 from .utils import KeySearch, keyevent, startapp
 
 _LOGGER = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ class XiaomiRemote(RemoteEntity):
             "name": self.name,
             "manufacturer": "Xiaomi",
             "model": self.ip,
-            "sw_version": VERSION,
+            "sw_version": manifest.version,
             "via_device": (DOMAIN, self.ip),
         }
 

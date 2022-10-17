@@ -55,7 +55,8 @@ CHILD_TYPE_MEDIA_CLASS = {
 _LOGGER = logging.getLogger(__name__)
 
 from urllib.parse import urlparse, parse_qs, parse_qsl, quote
-from .parsem3u import get_tvsource
+from manifest import manifest
+from tv_source import TVSource
 
 protocol = 'xiaomi://'
 tv_protocol = 'xiaomi://tv/'
@@ -64,6 +65,7 @@ class XiaomiRouter():
 
     tv_home = f'{tv_protocol}home'
     tv_playlist = f'{tv_protocol}playlist'
+    tv_search = f'{tv_protocol}search'
 
 def parse_query(url_query):
     query = parse_qsl(url_query)
@@ -72,8 +74,24 @@ def parse_query(url_query):
         data[item[0]] = item[1]
     return data
 
+
+# 初始化直播源
+async def async_Init_TVSource(hass):    
+    tv = hass.data.get(manifest.domain)
+    if tv is None:
+        tv = TVSource()
+        hass.data.set(manifest.domain, tv)
+    # 更新数据
+    await tv.update()
+    return tv
+
+
+
 async def async_browse_media(media_player, media_content_type, media_content_id):
-    tvsource = await get_tvsource(media_player.tv_url)
+    hass = media_player.hass
+    # 初始化直播源
+    tv = await async_Init_TVSource(hass)
+
     # 主界面
     if media_content_id in [None, XiaomiRouter.tv_home]:
         library_info = BrowseMedia(
@@ -86,16 +104,15 @@ async def async_browse_media(media_player, media_content_type, media_content_id)
             children=[],
         )
         # 分组列表
-        for item in tvsource:
+        for item in tv.groups:
             library_info.children.append(
                 BrowseMedia(
                     title=item,
                     media_class=CHILD_TYPE_MEDIA_CLASS[MEDIA_TYPE_CHANNEL],
                     media_content_type=MEDIA_TYPE_CHANNEL,
-                    media_content_id=f'{XiaomiRouter.tv_playlist}?title={item}&id={item}',
+                    media_content_id=f'{XiaomiRouter.tv_playlist}?group={item}',
                     can_play=False,
-                    can_expand=True,
-                    # thumbnail="https://brands.home-assistant.io/_/group/logo@2x.png"
+                    can_expand=True
                 )
             )
         return library_info
@@ -104,30 +121,48 @@ async def async_browse_media(media_player, media_content_type, media_content_id)
     url = urlparse(media_content_id)
     query = parse_query(url.query)
 
-    title = query['title']
-    id = query.get('id')
-
     if media_content_id.startswith(XiaomiRouter.tv_playlist):
         # 播放列表
+        group = query['group']
         library_info = BrowseMedia(
             media_class=CHILD_TYPE_MEDIA_CLASS[MEDIA_TYPE_PLAYLIST],
             media_content_type=MEDIA_TYPE_PLAYLIST,
             media_content_id=media_content_id,
-            title=title,
+            title=group,
             can_play=False,
             can_expand=False,
             children=[],
         )
-        channels = tvsource[id]
+        channels = filter(lambda x: x.group == group, tv.playlist)
         for item in channels:
             library_info.children.append(
                 BrowseMedia(
-                    title=item[0],
+                    title=item.title,
                     media_class=MEDIA_CLASS_MUSIC,
                     media_content_type=MEDIA_TYPE_TVSHOW,
-                    media_content_id=item[1],
+                    media_content_id=item.path,
                     can_play=True,
                     can_expand=False
                 )
             )
         return library_info
+
+
+async def async_play_media(media_player, media_content_type, media_content_id):
+    if media_content_id is None or media_content_id.startswith(protocol) == False:
+        return
+
+    hass = media_player.hass
+    # 初始化直播源
+    tv = await async_Init_TVSource(hass)
+
+    # 协议转换
+    url = urlparse(media_content_id)
+    query = parse_query(url.query)
+
+    if media_content_id.startswith(XiaomiRouter.tv_search):
+        kv = query.get('kv')
+        # 电视搜索
+        arr = list(filter(lambda x: kv in x.title, tv.playlist))
+        if len(arr) > 0:
+            return arr[0].path

@@ -32,9 +32,10 @@ from homeassistant.const import (
     STATE_UNAVAILABLE
 )
 
-from .const import DOMAIN, VERSION
+from .manifest import manifest
+from .const import DOMAIN
 from .utils import keyevent, startapp, check_port, getsysteminfo, changesource, getinstalledapp, capturescreen
-from .browse_media import async_browse_media
+from .browse_media import async_browse_media, async_play_media
 from .dlna import MediaDLNA
 from .adb import MediaADB
 
@@ -52,16 +53,14 @@ async def async_setup_entry(
 ) -> None:
     host = entry.data.get(CONF_HOST)
     name = entry.data.get(CONF_NAME)
-    tv_url = entry.options.get('tv_url', '')
     hass.http.register_static_path('/xiaomi_tv-local', hass.config.path("custom_components/xiaomi_tv/www"), False)
-    hass.components.frontend.add_extra_js_url(hass, '/xiaomi_tv-local/tv-remote.js?v=' + VERSION)
-
-    async_add_entities([XiaomiTV(host, name, tv_url, hass)], True)
+    hass.components.frontend.add_extra_js_url(hass, '/xiaomi_tv-local/tv-remote.js?v=' + manifest.version)
+    async_add_entities([XiaomiTV(host, name, hass)], True)
 
 class XiaomiTV(MediaPlayerEntity):
     """Represent the Xiaomi TV for Home Assistant."""
 
-    def __init__(self, ip, name, tv_url, hass):
+    def __init__(self, ip, name, hass):
         """Receive IP address and name to construct class."""
         self.hass = hass
         self.ip = ip
@@ -72,8 +71,6 @@ class XiaomiTV(MediaPlayerEntity):
         self.is_alive = False
         self._source_list = []
         self._sound_mode_list = ['hdmi1', 'hdmi2', 'hdmi3', 'gallery', 'aux', 'tv', 'vga', 'av', 'dtmb']
-        # 直播源
-        self.tv_url = tv_url
         # DLNA媒体设备
         self.dlna = MediaDLNA(ip)
         self.adb = MediaADB(ip, self)
@@ -166,7 +163,7 @@ class XiaomiTV(MediaPlayerEntity):
             "name": self.name,
             "manufacturer": "Xiaomi",
             "model": self.ip,
-            "sw_version": VERSION,
+            "sw_version": manifest.version,
             "via_device": (DOMAIN, self.ip),
         }
 
@@ -239,7 +236,12 @@ class XiaomiTV(MediaPlayerEntity):
         # 调整音量
         await self.dlna.async_set_volume_level(volume)
 
-    async def async_play_media(self, media_type, media_id, **kwargs):            
+    async def async_play_media(self, media_type, media_id, **kwargs):
+
+        result = await async_play_media(self, media_type, media_id)
+        if result is not None:
+            media_id = result
+
         await self.dlna.async_play_media(media_type, media_id)
 
     async def async_media_play(self):

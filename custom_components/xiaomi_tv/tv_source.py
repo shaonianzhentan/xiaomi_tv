@@ -1,5 +1,41 @@
 import sys, re, os, aiohttp, time
 
+class TVSource():
+
+    def __init__(self) -> None:
+        self.playlist = []
+        self.groups = []
+        self.update_time = None
+
+    # 更新TV源
+    async def update(self):
+        # 缓存一小时
+        if self.update_time is not None and (time.time() - self.update_time) > 3600:
+            return
+
+        m3ufile = 'xiaomi_tv.m3u'
+        m3u_url = 'https://ghproxy.com/https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u'
+        # 下载文件
+        request_timeout = aiohttp.ClientTimeout(total=10)
+        async with aiohttp.ClientSession(timeout=request_timeout) as session:
+            async with session.get(m3u_url) as response:
+                with open(m3ufile,"wb") as fs:
+                    fs.write(await response.read())
+        # 判断文件是否存在
+        playlist = parseM3U(m3ufile)
+        self.playlist = playlist
+        # 分组
+        self.groups = list(set(map(lambda x: x.group, playlist)))
+
+        self.update_time = time.time()
+
+    def search_channel(self, name):
+        # 频道搜索
+        arr = list(filter(lambda x: name in x.title, self.playlist))
+        print(arr)
+        if len(arr) > 0:
+            return arr[0].path
+
 class track():
     def __init__(self, group, title, path):
         self.group = group
@@ -61,47 +97,11 @@ def parseM3U(infile):
         elif (len(line) != 0):
             # pull song path from all other, non-blank lines
             song.path=line
-            playlist.append(song)
+            if song.group is not None:
+                playlist.append(song)
             # reset the song variable so it doesn't use the same EXTINF more than once
             song=track(None,None,None)
 
     infile.close()
 
     return playlist
-
-# 直播源文件
-m3ufile = 'xiaomi_tv.m3u'
-
-async def update_tvsource(m3u_url):
-    if m3u_url == '':
-        return
-    # 下载文件
-    request_timeout = aiohttp.ClientTimeout(total=10)
-    async with aiohttp.ClientSession(timeout=request_timeout) as session:
-        async with session.get(m3u_url) as response:
-            with open(m3ufile,"wb") as fs:
-                fs.write(await response.read())
-
-# 读取文件
-async def get_tvsource(tv_url):
-    print(tv_url)
-    m3ufileurl = 'https://ghproxy.com/https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u'
-    if tv_url != '':
-        m3ufileurl = tv_url
-    # 不存在，则下载
-    if os.path.exists(m3ufile) == False:
-        await update_tvsource(m3ufileurl)
-    # 超过1小时，则更新
-    if int(time.time()) > int(os.stat(m3ufile).st_mtime + 3600):
-        await update_tvsource(m3ufileurl)
-    # 判断文件是否存在
-    playlist = parseM3U(m3ufile)
-    playsource = {}
-    for track in playlist:
-        # print (track.title, track.group, track.path)
-        if track.group is None:
-            continue
-        if track.group not in playsource:
-            playsource[track.group] = []
-        playsource[track.group].append((track.title, track.path))
-    return playsource
