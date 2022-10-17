@@ -161,6 +161,4 @@ async def async_play_media(media_player, media_content_type, media_content_id):
     if media_content_id.startswith(XiaomiRouter.tv_search):
         kv = query.get('kv')
         # 电视搜索
-        arr = list(filter(lambda x: kv in x.title, tv.playlist))
-        if len(arr) > 0:
-            return arr[0].path
+        return await tv.search_channel(kv)

@@ -10,7 +10,7 @@ class TVSource():
     # 更新TV源
     async def update(self):
         # 缓存一小时
-        if self.update_time is not None and (time.time() - self.update_time) < 3600:
+        if self.update_time is not None and (time.time() - self.update_time) < 1800:
             return
 
         m3ufile = 'xiaomi_tv.m3u'
@@ -29,10 +29,11 @@ class TVSource():
 
         self.update_time = time.time()
 
-    def search_channel(self, name):
+    async def search_channel(self, name):
+        await self.update()
         # 频道搜索
-        arr = list(filter(lambda x: name in x.title, self.playlist))
-        print(arr)
+        arr = list(filter(lambda x: name.lower() in x.title.lower(), self.playlist))
+        # print(arr)
         if len(arr) > 0:
             return arr[0].path
 

@@ -99,7 +99,9 @@ class XiaomiTV(MediaPlayerEntity):
                 # '无线投屏': 'com.xiaomi.mitv.smartshare'
             }
         # mitv ethernet Mac address
-        self._attributes = {}
+        self._attributes = {
+            'platform': 'xiaomi'
+        }
         # 失败计数器
         self.fail_count = 0
 
@@ -242,8 +244,9 @@ class XiaomiTV(MediaPlayerEntity):
         if result is not None:
             media_id = result
 
-        self._attr_media_content_id = media_id
-        await self.dlna.async_play_media(media_type, media_id)
+        if media_id.startswith('http'):
+            self._attr_media_content_id = media_id
+            await self.dlna.async_play_media(media_type, media_id)
 
     async def async_media_play(self):
         result = await self.dlna.async_media_play()
