@@ -55,8 +55,8 @@ CHILD_TYPE_MEDIA_CLASS = {
 _LOGGER = logging.getLogger(__name__)
 
 from urllib.parse import urlparse, parse_qs, parse_qsl, quote
-from manifest import manifest
-from tv_source import TVSource
+from .manifest import manifest
+from .tv_source import TVSource
 
 protocol = 'xiaomi://'
 tv_protocol = 'xiaomi://tv/'
@@ -76,16 +76,14 @@ def parse_query(url_query):
 
 
 # 初始化直播源
-async def async_Init_TVSource(hass):    
+async def async_Init_TVSource(hass):
     tv = hass.data.get(manifest.domain)
     if tv is None:
         tv = TVSource()
-        hass.data.set(manifest.domain, tv)
+        hass.data.setdefault(manifest.domain, tv)
     # 更新数据
     await tv.update()
     return tv
-
-
 
 async def async_browse_media(media_player, media_content_type, media_content_id):
     hass = media_player.hass

@@ -10,7 +10,7 @@ class TVSource():
     # 更新TV源
     async def update(self):
         # 缓存一小时
-        if self.update_time is not None and (time.time() - self.update_time) > 3600:
+        if self.update_time is not None and (time.time() - self.update_time) < 3600:
             return
 
         m3ufile = 'xiaomi_tv.m3u'

@@ -242,6 +242,7 @@ class XiaomiTV(MediaPlayerEntity):
         if result is not None:
             media_id = result
 
+        self._attr_media_content_id = media_id
         await self.dlna.async_play_media(media_type, media_id)
 
     async def async_media_play(self):
@@ -289,7 +290,7 @@ class XiaomiTV(MediaPlayerEntity):
                 if app_info is not None:
                     for app in app_info:
                         self.apps.update({ app['AppName']: app['PackageName'] })
-                
+
                 # 绑定视频源
                 for mode in self._sound_mode_list:
                     self.apps.update({ mode.upper(): mode })
