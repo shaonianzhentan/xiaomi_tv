@@ -1,7 +1,7 @@
 {
     "domain": "xiaomi_tv",
     "name": "\u5C0F\u7C73\u7535\u89C6",
-    "version": "2022.10.17",
+    "version": "2022.10.18",
     "config_flow": true,
     "documentation": "https://github.com/shaonianzhentan/xiaomi_tv",
     "requirements": [

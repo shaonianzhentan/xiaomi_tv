@@ -68,9 +68,9 @@ def parseM3U(infile):
         if line.startswith('#EXTINF:'):
             # pull length and title from #EXTINF line
             info,title=line.split('#EXTINF:')[1].split(',',1)
-            #matchObj = re.match(r'(.*)status="online"', info)
-            #if matchObj is None:
-            #    continue
+            matchObj = re.match(r'(.*)status="online"', info)
+            if matchObj is None:
+                continue
             group = '默认列表'
             if 'CCTV' in title:
                 group = 'CCTV'
