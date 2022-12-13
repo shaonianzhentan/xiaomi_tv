@@ -73,7 +73,7 @@ class XiaomiRemote(RemoteEntity):
         """Send commands to a device."""
         key = command[0]
         actionKeys = {
-            'sleep': ['power', 'right', 'right', 'enter'],
+            'sleep': ['power', 'right', 'enter'],
             'power': ['power'],
             'up': ['up'],
             'down': ['down'],
