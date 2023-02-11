@@ -46,7 +46,7 @@ class XiaomiConfigFlow(ConfigFlow, domain=DOMAIN):
         if '（' in host:
             dv = list(filter(lambda item: f"{item['name'].split('.')[0]}（{item['ip']}）" == host, self.devices))
             obj = dv[0]
-            name = obj['name']
+            name = obj['name'].split('.')[0]
             host = obj['ip']
 
         return self.async_create_entry(title=host, data={
