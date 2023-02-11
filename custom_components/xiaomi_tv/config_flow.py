@@ -28,7 +28,7 @@ class XiaomiConfigFlow(ConfigFlow, domain=DOMAIN):
             devices = await AsyncXiaomiTVScanner(zc)
             self.devices = devices
             if len(devices) > 0:
-                hosts = list(map(lambda item: f"{item['name']}（{item['ip']}）", devices))
+                hosts = list(map(lambda item: f"{item['name'].split('.')[0]}（{item['ip']}）", devices))
                 default_host = hosts[0]
                 DATA_SCHEMA = vol.Schema({
                     vol.Required("host", default = default_host): vol.In(hosts)
@@ -44,7 +44,7 @@ class XiaomiConfigFlow(ConfigFlow, domain=DOMAIN):
         host = user_input.get('host')
         name = user_input.get('name')
         if '（' in host:
-            dv = list(filter(lambda item: f"{item['name']}（{item['ip']}）" == device, self.devices))
+            dv = list(filter(lambda item: f"{item['name'].split('.')[0]}（{item['ip']}）" == host, self.devices))
             obj = dv[0]
             name = obj['name']
             host = obj['ip']
