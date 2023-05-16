@@ -1,41 +1,5 @@
-import sys, re, os, aiohttp, time
+import os, aiohttp, time
 
-class TVSource():
-
-    def __init__(self) -> None:
-        self.playlist = []
-        self.groups = []
-        self.update_time = None
-
-    # 更新TV源
-    async def update(self):
-        # 缓存一小时
-        if self.update_time is not None and (time.time() - self.update_time) < 1800:
-            return
-
-        m3ufile = 'xiaomi_tv.m3u'
-        m3u_url = 'https://ghproxy.com/https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u'
-        # 下载文件
-        request_timeout = aiohttp.ClientTimeout(total=10)
-        async with aiohttp.ClientSession(timeout=request_timeout) as session:
-            async with session.get(m3u_url) as response:
-                with open(m3ufile,"wb") as fs:
-                    fs.write(await response.read())
-        # 判断文件是否存在
-        playlist = parseM3U(m3ufile)
-        self.playlist = playlist
-        # 分组
-        self.groups = list(set(map(lambda x: x.group, playlist)))
-
-        self.update_time = time.time()
-
-    async def search_channel(self, name):
-        await self.update()
-        # 频道搜索
-        arr = list(filter(lambda x: name.lower() in x.title.lower(), self.playlist))
-        # print(arr)
-        if len(arr) > 0:
-            return arr[0].path
 
 class track():
     def __init__(self, group, title, path):
@@ -68,9 +32,14 @@ def parseM3U(infile):
         if line.startswith('#EXTINF:'):
             # pull length and title from #EXTINF line
             info,title=line.split('#EXTINF:')[1].split(',',1)
-            matchObj = re.match(r'(.*)status="online"', info)
-            if matchObj is None:
+            #print(info, title)
+
+            # 过滤失效
+            if '[Timeout]' in title or '[Geo-blocked]' in title:
+            #matchObj = re.match(r'(.*)status="online"', info)
+            #if matchObj is None:
                 continue
+
             group = '默认列表'
             if 'CCTV' in title:
                 group = 'CCTV'
@@ -106,3 +75,58 @@ def parseM3U(infile):
     infile.close()
 
     return playlist
+
+class IPTV():
+
+    def __init__(self) -> None:
+        self.playlist = []
+        self.groups = []
+
+    async def get_list(self):
+        m3ufile = 'iptv.m3u'
+        is_download = False
+        if os.path.exists(m3ufile) == True:
+            # 更新时间小于30分钟，播放列表不为空，则停止更新
+            if time.time() < os.path.getmtime(m3ufile) + 60000 * 30:
+                if len(self.playlist) > 0:
+                    print('每隔30分钟更新一次')
+                    return self.playlist
+            else:
+                is_download = True
+        else:
+            is_download = True
+
+        if is_download:
+            print('拉取最新资源')
+            m3u_url = 'https://ghproxy.com/https://raw.githubusercontent.com/iptv-org/iptv/master/streams/cn.m3u'
+            # 下载文件
+            request_timeout = aiohttp.ClientTimeout(total=10)
+            async with aiohttp.ClientSession(timeout=request_timeout) as session:
+                async with session.get(m3u_url) as response:
+                    with open(m3ufile,"wb") as fs:
+                        fs.write(await response.read())
+        # 解析文件
+        playlist = parseM3U(m3ufile)
+        self.playlist = playlist
+        # 分组
+        self.groups = list(set(map(lambda x: x.group, playlist)))
+
+        return self.playlist
+
+    async def search_list(self, name):
+        ''' 列表搜索 '''
+        playlist = await self.get_list()
+        return list(filter(lambda x: name.lower() in x.title.lower(), playlist))
+
+    async def search_item(self, name):
+        ''' 列表项搜索 '''
+        playlist = await self.get_list()
+        _list = list(filter(lambda x: name.lower() in x.title.lower(), playlist))
+        if len(_list) > 0:
+            return _list[0]
+
+    async def search_url(self, name):
+        ''' 播放URL搜索 '''
+        item = await self.search_item(name)
+        if item is not None:
+            return item.path

@@ -56,7 +56,9 @@ _LOGGER = logging.getLogger(__name__)
 
 from urllib.parse import urlparse, parse_qs, parse_qsl, quote
 from .manifest import manifest
-from .tv_source import TVSource
+from .iptv import IPTV
+
+tv = IPTV()
 
 protocol = 'xiaomi://'
 tv_protocol = 'xiaomi://tv/'
@@ -74,21 +76,10 @@ def parse_query(url_query):
         data[item[0]] = item[1]
     return data
 
-
-# 初始化直播源
-async def async_Init_TVSource(hass):
-    tv = hass.data.get(manifest.domain)
-    if tv is None:
-        tv = TVSource()
-        hass.data.setdefault(manifest.domain, tv)
-    # 更新数据
-    await tv.update()
-    return tv
-
 async def async_browse_media(media_player, media_content_type, media_content_id):
     hass = media_player.hass
     # 初始化直播源
-    tv = await async_Init_TVSource(hass)
+    await tv.get_list()
 
     # 主界面
     if media_content_id in [None, XiaomiRouter.tv_home]:
@@ -150,9 +141,8 @@ async def async_play_media(media_player, media_content_type, media_content_id):
     if media_content_id is None or media_content_id.startswith(protocol) == False:
         return
 
-    hass = media_player.hass
     # 初始化直播源
-    tv = await async_Init_TVSource(hass)
+    await tv.get_list()
 
     # 协议转换
     url = urlparse(media_content_id)
@@ -161,4 +151,4 @@ async def async_play_media(media_player, media_content_type, media_content_id):
     if media_content_id.startswith(XiaomiRouter.tv_search):
         kv = query.get('kv')
         # 电视搜索
-        return await tv.search_channel(kv)
+        return await tv.search_url(kv)
