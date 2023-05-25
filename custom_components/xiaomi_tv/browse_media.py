@@ -56,9 +56,6 @@ _LOGGER = logging.getLogger(__name__)
 
 from urllib.parse import urlparse, parse_qs, parse_qsl, quote
 from .manifest import manifest
-from .iptv import IPTV
-
-tv = IPTV()
 
 protocol = 'xiaomi://'
 tv_protocol = 'xiaomi://tv/'
@@ -78,8 +75,19 @@ def parse_query(url_query):
 
 async def async_browse_media(media_player, media_content_type, media_content_id):
     hass = media_player.hass
-    # 初始化直播源
-    await tv.get_list()
+    iptv = hass.data.get('conversation_iptv')
+    if iptv is None:
+        return BrowseMedia(
+            media_class=MEDIA_CLASS_DIRECTORY,
+            media_content_id=media_content_id,
+            media_content_type=MEDIA_TYPE_CHANNEL,
+            title="请安装语音小助手",
+            can_play=False,
+            can_expand=False,
+            children=[],
+        )
+
+    playlist = await iptv.get_list()
 
     # 主界面
     if media_content_id in [None, XiaomiRouter.tv_home]:
@@ -93,7 +101,7 @@ async def async_browse_media(media_player, media_content_type, media_content_id)
             children=[],
         )
         # 分组列表
-        for item in tv.groups:
+        for item in iptv.groups:
             library_info.children.append(
                 BrowseMedia(
                     title=item,
@@ -122,8 +130,9 @@ async def async_browse_media(media_player, media_content_type, media_content_id)
             can_expand=False,
             children=[],
         )
-        channels = filter(lambda x: x.group == group, tv.playlist)
+        channels = filter(lambda x: x.group == group, playlist)
         for item in channels:
+            print(item.path)
             library_info.children.append(
                 BrowseMedia(
                     title=item.title,
@@ -141,8 +150,10 @@ async def async_play_media(media_player, media_content_type, media_content_id):
     if media_content_id is None or media_content_id.startswith(protocol) == False:
         return
 
-    # 初始化直播源
-    await tv.get_list()
+    iptv = media_player.hass.data.get('conversation_iptv')
+    if iptv is None:
+        return None
+    await iptv.get_list()
 
     # 协议转换
     url = urlparse(media_content_id)
@@ -151,4 +162,4 @@ async def async_play_media(media_player, media_content_type, media_content_id):
     if media_content_id.startswith(XiaomiRouter.tv_search):
         kv = query.get('kv')
         # 电视搜索
-        return await tv.search_url(kv)
+        return await iptv.search_url(kv)
