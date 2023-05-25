@@ -6,6 +6,8 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 ![visit](https://visitor-badge.laobi.icu/badge?page_id=shaonianzhentan.xiaomi_tv&left_text=visit)
 
+[![badge](https://img.shields.io/badge/Conversation-语音小助手-049cdb?logo=homeassistant&style=for-the-badge)](https://github.com/shaonianzhentan/conversation)
+
 ## 使用方式
 
 安装完成重启HA，刷新一下页面，在集成里搜索`小米电视`即可
