@@ -38,7 +38,7 @@ HomeKit遥控器
 
 发送按键
 ```yaml
-service: remote.send_command
+service: xiaomi_tv.send_key
 data:
   command: left
 ```
@@ -47,9 +47,10 @@ data:
 
 打开ADB（注意：必须先打开`开发者模式`）
 ```yaml
-service: remote.send_command
+service: xiaomi_tv.send_key
 data:
-  command: adb
+  key: adb
+  entity_id: media_player.xiao_mi_dian_shi
 ```
 腾讯视频搜索
 ```yaml

@@ -34,6 +34,7 @@ class XiaomiConfigFlow(ConfigFlow, domain=DOMAIN):
 class OptionsFlowHandler(OptionsFlow):
     def __init__(self, config_entry: ConfigEntry):
         self.config_entry = config_entry
+        self.hosts = None
 
     async def async_step_init(self, user_input=None):
         return await self.async_step_user(user_input)
@@ -41,24 +42,24 @@ class OptionsFlowHandler(OptionsFlow):
     async def discovery(self):
         zc = await zeroconf.async_get_instance(self.hass)
         devices = await AsyncXiaomiTVScanner(zc)
-
-        hosts = {}
-        for item in devices:
-            value = item['ip']
-            name = item['name'].split('.')[0]
-            key = f"{name}（{value}）"
-            hosts[key] = value
-        self.hosts = hosts
+        if len(devices) > 0:
+            hosts = {}
+            for item in devices:
+                value = item['ip']
+                name = item['name'].split('.')[0]
+                key = f"{name}（{value}）"
+                hosts[key] = value
+            self.hosts = hosts
 
     async def async_step_user(self, user_input=None):
-        print(self.hosts)
+        hosts = self.hosts
         options = self.config_entry.options
         errors = {}
         if user_input is not None:
             host = user_input['host']
             print(user_input)
-            for key in self.hosts:
-                if self.hosts[key] == host:
+            for key in hosts:
+                if hosts[key] == host:
                     name = key.split('（')[0]
                     return self.async_create_entry(title=name, data={
                         'name': name,
@@ -67,7 +68,11 @@ class OptionsFlowHandler(OptionsFlow):
 
         await self.discovery()
 
-        DATA_SCHEMA = vol.Schema({
-            vol.Required("host", default=options.get('host', '')): vol.In(self.hosts)
-        })
+        if hosts is None:
+            errors['base'] = { '404' }
+            DATA_SCHEMA = vol.Schema({})
+        else:
+            DATA_SCHEMA = vol.Schema({
+                vol.Required("host", default=options.get('host', '')): vol.In(hosts)
+            })
         return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)

@@ -3,7 +3,7 @@ adb_command:
   description: 发送命令到小米电视
   fields:
     entity_id:
-      description: 小米电视实体
+      description: 小米电视
       required: true
       selector:
         entity:
@@ -16,3 +16,34 @@ adb_command:
       example: "input keyevent 4"
       selector:
         text:
+send_key:
+  name: 遥控按键
+  description: 使用遥控器按键控制小米电视
+  fields:
+    entity_id:
+      description: 小米电视
+      required: true
+      selector:
+        entity:
+          integration: xiaomi_tv
+          domain: media_player
+    key:
+      name: Key
+      description: 按键名称
+      required: true
+      example: "enter"
+      selector:
+        select:
+          options:
+            - "power"
+            - "up"
+            - "down"
+            - "left"
+            - "right"
+            - "home"
+            - "enter"
+            - "back"
+            - "menu"
+            - "volumeup"
+            - "volumedown"
+            - "adb"

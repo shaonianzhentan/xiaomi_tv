@@ -55,16 +55,17 @@ async def async_setup_entry(
     host = config.get(CONF_HOST)
     name = config.get(CONF_NAME)
     if host is not None:
-        async_add_entities([XiaomiTV(host, name, hass)], True)
+        async_add_entities([XiaomiTV(entry.entry_id, host, name)], True)
 
 class XiaomiTV(MediaPlayerEntity):
     """Represent the Xiaomi TV for Home Assistant."""
 
-    def __init__(self, ip, name, hass):
-        """Receive IP address and name to construct class."""
-        self.hass = hass
+    def __init__(self, entry_id, ip, name):
+        
+        self._attr_unique_id = entry_id
+    
         self.ip = ip
-        self._name = name
+        self._attr_name = name
         self._volume_level = 1
         self._is_volume_muted = False
         self._state = STATE_OFF
@@ -99,19 +100,12 @@ class XiaomiTV(MediaPlayerEntity):
                 # '无线投屏': 'com.xiaomi.mitv.smartshare'
             }
         # mitv ethernet Mac address
-        self._attributes = {
-            'platform': 'xiaomi'
+        self._attr_extra_state_attributes = {
+            'platform': 'xiaomi',
+            'ip': self.ip
         }
         # 失败计数器
         self.fail_count = 0
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def unique_id(self):
-        return self.ip.replace('.', '')
 
     @property
     def volume_level(self):
@@ -160,18 +154,13 @@ class XiaomiTV(MediaPlayerEntity):
     def device_info(self):
         return {
             "identifiers": {
-                (DOMAIN, self.unique_id)
+                (DOMAIN, self._attr_unique_id)
             },
-            "name": self.name,
+            "name": self._attr_name,
             "manufacturer": "Xiaomi",
             "model": self.ip,
-            "sw_version": manifest.version,
-            "via_device": (DOMAIN, self.ip),
+            "sw_version": manifest.version
         }
-
-    @property
-    def extra_state_attributes(self):
-        return self._attributes
 
     async def async_browse_media(self, media_content_type=None, media_content_id=None):
         return await async_browse_media(self, media_content_type, media_content_id)

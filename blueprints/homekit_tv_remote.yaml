@@ -12,24 +12,16 @@ blueprint:
         entity:
           integration: xiaomi_tv
           domain: media_player
-    remote_entity:
-      name: 遥控器
-      description: 小米电视遥控器
-      default: []
-      selector:
-        entity:
-          integration: xiaomi_tv
-          domain: remote
 trigger:
 - platform: event
   event_type: homekit_tv_remote_key_pressed
   event_data:
     entity_id: !input media_entity
 action:
-- service: remote.send_command
+- service: xiaomi_tv.send_key
   data:    
-    entity_id: !input remote_entity
-    command: >
+    entity_id: !input media_entity
+    key: >
       {% set name = trigger.event.data.key_name %}
       {% set keys = {
             "arrow_up": "up",

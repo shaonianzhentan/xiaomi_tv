@@ -210,3 +210,56 @@ class KeySearch():
 
 # ks = KeySearch('o')
 # print(ks.getKeys("大江大河"))
+
+
+# 快捷键
+ACTION_KEYS = {
+    'sleep': ['power', 'right', 'enter'],
+    'power': ['power'],
+    'up': ['up'],
+    'down': ['down'],
+    'right': ['right'],
+    'left': ['left'],
+    'home': ['home'],
+    'enter': ['enter'],
+    'back': ['back'],
+    'menu': ['menu'],
+    'volumedown': ['volumedown'],
+    'volumeup': ['volumeup'],
+    # 开启调试模式（最后两个键是弹窗确定，第一次需要）
+    'adb': [
+        # 打开账号与安全
+        'right', 'right', 'right', 'enter',
+        # 选择ADB高度
+        'down', 'down', 'enter', 
+        # 选择开启
+        'up', 'enter', 
+        # 二次确定
+        'down', 'left', 'enter']
+}
+
+async def open_app(ip, app_id):
+    ''' 打开应用 '''
+    await keyevent(ip, 'home')
+    time.sleep(1)
+    await startapp(ip, app_id)
+    time.sleep(1)
+
+
+async def send_keystrokes(ip, keystrokes):
+    ''' 批量发送按键 '''
+    try:
+        for keystroke in keystrokes:
+            wait = 1.5
+            if '-' in keystroke:
+                arr = keystroke.split('-')
+                keystroke = arr[0]
+                wait = float(arr[1])
+            await keyevent(ip, keystroke)
+            # print(res)
+            # 如果是组合按键，则延时
+            if len(keystrokes) > 1:
+                time.sleep(wait)
+
+    except Exception as ex:
+        print(ex)
