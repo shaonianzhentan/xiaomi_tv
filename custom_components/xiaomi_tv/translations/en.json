@@ -6,13 +6,20 @@
         },
         "step": {
             "user": {
-                "title": "小米电视配置",
-                "description": "",
+                "description": "请在选项中选择设备",
+                "data": {}
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "description": "选择当前局域网中的小米电视设备",
                 "data": {
-                    "name": "名称",
                     "host": "IP地址"
                 }
             }
-        }
+        },
+        "error": {}
     }
 }

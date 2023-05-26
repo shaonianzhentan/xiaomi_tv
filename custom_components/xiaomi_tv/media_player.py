@@ -51,11 +51,11 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    host = entry.data.get(CONF_HOST)
-    name = entry.data.get(CONF_NAME)
-    hass.http.register_static_path('/xiaomi_tv-local', hass.config.path("custom_components/xiaomi_tv/www"), False)
-    hass.components.frontend.add_extra_js_url(hass, '/xiaomi_tv-local/tv-remote.js?v=' + manifest.version)
-    async_add_entities([XiaomiTV(host, name, hass)], True)
+    config = entry.options
+    host = config.get(CONF_HOST)
+    name = config.get(CONF_NAME)
+    if host is not None:
+        async_add_entities([XiaomiTV(host, name, hass)], True)
 
 class XiaomiTV(MediaPlayerEntity):
     """Represent the Xiaomi TV for Home Assistant."""

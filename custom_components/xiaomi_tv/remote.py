@@ -24,9 +24,11 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    host = entry.data.get(CONF_HOST)
-    name = entry.data.get(CONF_NAME) + '遥控器'
-    async_add_entities([XiaomiRemote(host, name, hass)], True)
+    config = entry.options
+    host = config.get(CONF_HOST)
+    if host is not None:
+        name = config.get(CONF_NAME) + '遥控器'
+        async_add_entities([XiaomiRemote(host, name, hass)], True)
 
 class XiaomiRemote(RemoteEntity):
 
