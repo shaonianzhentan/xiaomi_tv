@@ -34,7 +34,7 @@ from homeassistant.const import (
 
 from .manifest import manifest
 from .const import DOMAIN
-from .utils import keyevent, startapp, check_port, getsysteminfo, changesource, getinstalledapp, capturescreen
+from .utils import keyevent, startapp, check_port, getsysteminfo, changesource, getinstalledapp, capturescreen, open_app
 from .browse_media import async_browse_media, async_play_media
 from .dlna import MediaDLNA
 from .adb import MediaADB
@@ -52,7 +52,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     config = entry.options
-    host = config.get(CONF_HOST)
+    host = config.get('ip')
     name = config.get(CONF_NAME)
     if host is not None:
         async_add_entities([XiaomiTV(entry.entry_id, host, name)], True)
@@ -66,6 +66,7 @@ class XiaomiTV(MediaPlayerEntity):
     
         self.ip = ip
         self._attr_name = name
+        self._attr_media_title = name
         self._volume_level = 1
         self._is_volume_muted = False
         self._state = STATE_OFF
@@ -175,9 +176,7 @@ class XiaomiTV(MediaPlayerEntity):
                 return
 
             # 在选择应用时，先回到首页
-            await keyevent(self.ip, 'home')
-            time.sleep(1)
-            await startapp(self.ip, app)
+            await open_app(self.hass, self.ip, app)
 
     # 选择数据源
     async def async_select_sound_mode(self, sound_mode):
@@ -273,10 +272,6 @@ class XiaomiTV(MediaPlayerEntity):
                 self._state = self.dlna.state
             # 根据应用列表数量，判断是否初次更新
             if app_len == 0:
-                # 获取电视信息
-                systeminfo = await getsysteminfo(self.ip)
-                if systeminfo is not None:
-                    self._attr_media_title = systeminfo['devicename']
                 # 获取应用列表
                 app_info = await getinstalledapp(self.ip)
                 if app_info is not None:

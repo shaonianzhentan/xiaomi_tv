@@ -1,4 +1,4 @@
-import aiohttp, json, time, hmac, socket, hashlib, os, re, datetime
+import aiohttp, json, time, hmac, socket, hashlib, re, datetime
 from urllib.parse import urlencode, urlparse, parse_qsl
 
 def check_port(ip, port):
@@ -235,31 +235,33 @@ ACTION_KEYS = {
         # 选择开启
         'up', 'enter', 
         # 二次确定
-        'down', 'left', 'enter']
+        'down', 'left', 'enter'
+    ]
 }
 
-async def open_app(ip, app_id):
+
+async def sleep(hass, second):
+    await hass.async_add_executor_job(time.sleep, second)
+
+async def open_app(hass, ip, app_id):
     ''' 打开应用 '''
     await keyevent(ip, 'home')
-    time.sleep(1)
+    await sleep(hass, 1)
     await startapp(ip, app_id)
-    time.sleep(1)
+    await sleep(hass, 1)
 
-
-async def send_keystrokes(ip, keystrokes):
-    ''' 批量发送按键 '''
-    try:
-        for keystroke in keystrokes:
-            wait = 1.5
-            if '-' in keystroke:
-                arr = keystroke.split('-')
-                keystroke = arr[0]
-                wait = float(arr[1])
-            await keyevent(ip, keystroke)
-            # print(res)
-            # 如果是组合按键，则延时
-            if len(keystrokes) > 1:
-                time.sleep(wait)
-
-    except Exception as ex:
-        print(ex)
+async def send_keys(hass, ip, keys, index=0):
+    if len(keys) > index:
+        key = keys[index]
+        wait = 1
+        if '-' in key:
+            arr = key.split('-')
+            key = arr[0]
+            wait = float(arr[1])
+        await keyevent(ip, key)
+        # print(res)
+        # 如果是组合按键，则延时
+        if len(keys) > 1:
+            await sleep(hass, wait)
+        index = index + 1
+        await send_keys(hass, ip, keys, index)

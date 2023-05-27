@@ -2,7 +2,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 from .const import DOMAIN, PLATFORMS, SEND_KEY
-from .utils import send_keystrokes, open_app, ACTION_KEYS
+from .utils import send_keys, open_app, ACTION_KEYS, sleep
 
 CONFIG_SCHEMA = cv.deprecated(DOMAIN)
 
@@ -18,14 +18,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             key = data.get('key')
             state = hass.states.get(entity_id)
             ip = state.attributes.get('ip')
-
+            keys = ACTION_KEYS.get(key)
             # 打开ADB
             if key == 'adb':
-                await open_app(ip, 'com.xiaomi.mitv.settings')
-            elif key in ACTION_KEYS:
-                await send_keystrokes(ip, ACTION_KEYS[key])
+                await open_app(hass, ip, 'com.xiaomi.mitv.settings')
+                sleep(hass, 1)
+                await send_keys(hass, ip, keys)
+            elif keys is not None:
+                await send_keys(hass, ip, keys)
             else:
-                await send_keystrokes(ip, key.split(','))
+                await send_keys(hass, ip, key.split(','))
 
         hass.services.async_register(DOMAIN, SEND_KEY, async_send_key)
     return True

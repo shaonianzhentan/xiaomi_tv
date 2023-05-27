@@ -45,34 +45,32 @@ class OptionsFlowHandler(OptionsFlow):
         if len(devices) > 0:
             hosts = {}
             for item in devices:
-                value = item['ip']
+                ip = item['ip']
                 name = item['name'].split('.')[0]
-                key = f"{name}（{value}）"
-                hosts[key] = value
+                hosts[ip] = f"{name}（{ip}）"
             self.hosts = hosts
+            return hosts
 
     async def async_step_user(self, user_input=None):
         hosts = self.hosts
         options = self.config_entry.options
         errors = {}
-        if user_input is not None:
-            host = user_input['host']
-            print(user_input)
-            for key in hosts:
-                if hosts[key] == host:
-                    name = key.split('（')[0]
-                    return self.async_create_entry(title=name, data={
-                        'name': name,
-                        'host': host
-                    })
+        if user_input is not None and hosts is not None:
+            ip = user_input['ip']
+            print(ip)
+            name = hosts[ip].split('（')[0]
+            return self.async_create_entry(title=name, data={
+                'name': name,
+                'ip': ip
+            })
 
-        await self.discovery()
+        hosts = await self.discovery()
 
         if hosts is None:
             errors['base'] = { '404' }
             DATA_SCHEMA = vol.Schema({})
         else:
             DATA_SCHEMA = vol.Schema({
-                vol.Required("host", default=options.get('host', '')): vol.In(hosts)
+                vol.Required("ip", default=options.get('ip', '')): vol.In(hosts)
             })
         return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
