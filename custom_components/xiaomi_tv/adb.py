@@ -1,3 +1,4 @@
+import os
 from homeassistant.helpers.storage import STORAGE_DIR
 from homeassistant.const import (
     ATTR_ENTITY_ID,

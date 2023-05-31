@@ -72,7 +72,7 @@ class XiaomiTV(MediaPlayerEntity):
         self._state = STATE_OFF
         self.is_alive = False
         self._source_list = []
-        self._sound_mode_list = ['hdmi1', 'hdmi2', 'hdmi3', 'gallery', 'aux', 'tv', 'vga', 'av', 'dtmb']
+        self._sound_mode_list = ['hdmi1', 'hdmi2', 'hdmi3', 'gallery', 'aux', 'tv', 'vga', 'av', 'dtmb', 'adb']
         # DLNA媒体设备
         self.dlna = MediaDLNA(ip)
         self.adb = MediaADB(ip, self)
@@ -182,7 +182,13 @@ class XiaomiTV(MediaPlayerEntity):
     async def async_select_sound_mode(self, sound_mode):
         if self.sound_mode_list.count(sound_mode) > 0:
             self.fire_event(sound_mode)
-            await changesource(self.ip, sound_mode)
+            if sound_mode == 'adb':
+                await self.hass.services.async_call('xiaomi_tv', 'send_key', {
+                    'entity_id': self.entity_id,
+                    'key': 'adb'
+                })
+            else:
+                await changesource(self.ip, sound_mode)
 
     async def async_turn_off(self):
         if self._state != STATE_OFF:
