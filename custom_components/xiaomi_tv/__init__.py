@@ -22,7 +22,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # 打开ADB
             if key == 'adb':
                 await open_app(hass, ip, 'com.xiaomi.mitv.settings')
-                sleep(hass, 1)
+                await sleep(hass, 1)
                 await send_keys(hass, ip, keys)
             elif keys is not None:
                 await send_keys(hass, ip, keys)
