@@ -60,9 +60,9 @@ class OptionsFlowHandler(OptionsFlow):
             print(ip)
 
             if hosts is None:
-                name = hosts[ip].split('（')[0]
-            else:
                 name = user_input['name']
+            else:
+                name = hosts[ip].split('（')[0]
             
             if name != '' and ip != '':
                 return self.async_create_entry(title=name, data={
