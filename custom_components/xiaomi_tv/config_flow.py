@@ -55,22 +55,30 @@ class OptionsFlowHandler(OptionsFlow):
         hosts = self.hosts
         options = self.config_entry.options
         errors = {}
-        if user_input is not None and hosts is not None:
+        if user_input is not None:
             ip = user_input['ip']
             print(ip)
-            name = hosts[ip].split('（')[0]
-            return self.async_create_entry(title=name, data={
-                'name': name,
-                'ip': ip
-            })
+
+            if hosts is None:
+                name = hosts[ip].split('（')[0]
+            else:
+                name = user_input['name']
+            
+            if name != '' and ip != '':
+                return self.async_create_entry(title=name, data={
+                    'name': name,
+                    'ip': ip
+                })
 
         hosts = await self.discovery()
-
+        ip = options.get('ip', '')
         if hosts is None:
-            errors['base'] = { '404' }
-            DATA_SCHEMA = vol.Schema({})
+            DATA_SCHEMA = vol.Schema({
+                vol.Required("name", default=options.get('name', '小米电视')): str,
+                vol.Required("ip", default=ip): str
+            })
         else:
             DATA_SCHEMA = vol.Schema({
-                vol.Required("ip", default=options.get('ip', '')): vol.In(hosts)
+                vol.Required("ip", default=ip): vol.In(hosts)
             })
         return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
