@@ -2,11 +2,17 @@
 import logging
 import time, datetime
 
+from homeassistant.components import media_source
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.storage import STORAGE_DIR
-from homeassistant.components.media_player import MediaPlayerEntity
+from homeassistant.components.media_player import (
+    MediaPlayerEntity,
+    MediaType,
+    BrowseMedia, 
+    async_process_play_media_url
+)
 from homeassistant.components.media_player.const import (
     SUPPORT_BROWSE_MEDIA,
     SUPPORT_TURN_OFF,
@@ -35,7 +41,6 @@ from homeassistant.const import (
 from .manifest import manifest
 from .const import DOMAIN
 from .utils import keyevent, startapp, check_port, getsysteminfo, changesource, getinstalledapp, capturescreen, open_app
-from .browse_media import async_browse_media, async_play_media
 from .dlna import MediaDLNA
 from .adb import MediaADB
 
@@ -163,8 +168,17 @@ class XiaomiTV(MediaPlayerEntity):
             "sw_version": manifest.version
         }
 
-    async def async_browse_media(self, media_content_type=None, media_content_id=None):
-        return await async_browse_media(self, media_content_type, media_content_id)
+    async def async_browse_media(
+        self,
+        media_content_type: MediaType | str | None = None,
+        media_content_id: str | None = None,
+    ) -> BrowseMedia:
+        """Implement the websocket media browsing helper."""
+        return await media_source.async_browse_media(
+            self.hass,
+            media_content_id,
+            content_filter=None,
+        )
 
     # 选择应用
     async def async_select_source(self, source):
@@ -233,10 +247,12 @@ class XiaomiTV(MediaPlayerEntity):
         await self.dlna.async_set_volume_level(volume)
 
     async def async_play_media(self, media_type, media_id, **kwargs):
-
-        result = await async_play_media(self, media_type, media_id)
-        if result is not None:
-            media_id = result
+        if media_source.is_media_source_id(media_id):
+            media_type = MediaType.MUSIC
+            play_item = await media_source.async_resolve_media(
+                self.hass, media_id, self.entity_id
+            )
+            media_id = async_process_play_media_url(self.hass, play_item.url)
 
         if media_id.startswith('http'):
             self._attr_media_content_id = media_id
