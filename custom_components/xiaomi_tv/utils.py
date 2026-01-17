@@ -229,13 +229,11 @@ ACTION_KEYS = {
     # 开启调试模式（最后两个键是弹窗确定，第一次需要）
     'adb': [
         # 打开账号与安全
-        'right', 'right', 'right', 'enter',
-        # 选择ADB高度
-        'down', 'down', 'enter', 
-        # 选择开启
-        'up', 'enter', 
+        'down', 'down', 'down', 'down', 'down', 'down', 'down',
+        # 选择ADB并开启
+        'right', 'down', 'down', 'enter', 
         # 二次确定
-        'down', 'left', 'enter'
+        'right', 'enter'
     ]
 }
 
