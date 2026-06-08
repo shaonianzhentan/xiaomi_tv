@@ -32,8 +32,10 @@ class XiaomiConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class OptionsFlowHandler(OptionsFlow):
-    def __init__(self, config_entry: ConfigEntry):
-        self.config_entry = config_entry
+    def __init__(self, config_entry: ConfigEntry) -> None:
+        super().__init__()
+        # In Core 2026.5.4, self.config_entry is automatically set up 
+        # as a read-only property behind the scenes by the framework.
         self.hosts = None
 
     async def async_step_init(self, user_input=None):
@@ -50,26 +52,22 @@ class OptionsFlowHandler(OptionsFlow):
                 hosts[ip] = f"{name}（{ip}）"
             self.hosts = hosts
             return hosts
+        return None
 
     async def async_step_user(self, user_input=None):
         hosts = self.hosts
-        options = self.config_entry.options
+        options = self.config_entry.options 
         errors = {}
         if user_input is not None:
             ip = user_input['ip']
             print(ip)
-
             if hosts is None:
                 name = user_input['name']
             else:
                 name = hosts[ip].split('（')[0]
-            
             if name != '' and ip != '':
-                return self.async_create_entry(title=name, data={
-                    'name': name,
-                    'ip': ip
-                })
-
+                return self.async_create_entry(title=name, data={'name': name, 'ip': ip })
+        
         hosts = await self.discovery()
         ip = options.get('ip', '')
         if hosts is None:
